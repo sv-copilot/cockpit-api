@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/sv-copilot/drake-governance/adapters/validation-results.schema.json",
+  "title": "Validation Results",
+  "description": "Normalized validation outcomes produced by portfolio workers, the slice-agent-runner, and local IDE runs. The same shape is used in Evidence Contract validation_results and standalone run artifacts for cross-runtime parity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["overall", "checks"],
+  "properties": {
+    "overall": {
+      "type": "string",
+      "description": "Aggregate validation outcome.",
+      "enum": ["passed", "failed", "not_run", "partial"]
+    },
+    "checks": {
+      "type": "array",
+      "description": "Individual validation check results in execution order.",
+      "items": {
+        "$ref": "#/$defs/check"
+      }
+    },
+    "runtime": {
+      "type": "string",
+      "description": "Optional runtime label for parity auditing (cursor-cloud, local-cli, github-actions, slice-agent-runner).",
+      "examples": ["cursor-cloud", "local-cli", "github-actions", "slice-agent-runner"]
+    },
+    "source": {
+      "type": "string",
+      "description": "Optional producer identifier (adapter type, script name, or worker role).",
+      "examples": ["cursor", "slice-pipeline", "ci_preflight"]
+    }
+  },
+  "$defs": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check_name", "status"],
+      "properties": {
+        "check_name": {
+          "type": "string",
+          "description": "Stable check identifier or short label."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed", "skipped", "error"]
+        },
+        "command": {
+          "type": "string",
+          "description": "Exact shell command that was executed."
+        },
+        "exit_code": {
+          "type": "integer",
+          "description": "Process exit code. Zero means success."
+        },
+        "output": {
+          "type": "string",
+          "description": "Tail-truncated combined stdout/stderr summary."
+        },
+        "duration_ms": {
+          "type": "integer",
+          "description": "Wall-clock duration in milliseconds.",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

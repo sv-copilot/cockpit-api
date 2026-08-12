@@ -1,0 +1,5029 @@
+{
+  "schema_version": 3,
+  "generated_at": "2026-07-21T17:50:56Z",
+  "source_backlog_path": ".docs/planning/projects/drake-governance/slice_backlog.md",
+  "default_fanout_limit": 3,
+  "planning_repo_id": "drake-governance",
+  "implementation_repo_id": "drake-governance",
+  "source_flat_tree": ".docs/slice_dependency_tree.json",
+  "notes": [
+    "DEPRECATED (2026-07-03): This flat tree is retained as a backward-compatible read-only pointer during namespace migration. Canonical per-project trees live under .docs/planning/projects/<repo-id>/slice_dependency_tree.json. New slices should be added directly to the namespace tree. Run 'python3 scripts/split_namespace_trees.py' to regenerate per-project trees from this file.",
+    "Autonomous Development Governance slices: technical architecture + product/marketing launch.",
+    "Groups: 'technical' = architecture evolution; 'product' = OSS launch readiness.",
+    "Technical P0 slices are foundation; must ship first within their group.",
+    "Product P0 slices are pre-launch; must complete before public announcement.",
+    "Independent slices within same group can run in parallel.",
+    "Cross-group dependencies noted where product slices need technical artifacts (e.g. PROD-CLINE-ADAPTER-1 needs ADAPTER-SPEC-1).",
+    "Model-verification run 2026-06-17: all slices assessed for deepseek-v4-flash and composer-2.5 executability. Slices requiring external humans (demo video, dry-run test, domain registration, social account creation, repo rename, community check-ins) have explicit operator_gates or are marked shaped/needs-human.",
+    "PROD-DOCS-1 (slice 18, 'large' effort) archived 2026-06-24. Replaced by sub-slices #47 (PROD-DOCS-CONCEPTS), #48 (PROD-DOCS-GUIDES), #49 (PROD-DOCS-REF), #50 (PROD-DOCS-EXAMPLES). Each sub-slice: small effort, <=10 files, single-session.",
+    "Keep this file synchronized with .docs/slice_backlog.md.",
+    "PROD-DRAKE-PUBLISH-1 adds public sv-copilot/drake; drake-governance stays private (no rename).",
+    "Phase 2 refine (2026-06-24): REPAIR-1 reclassified #17/#20/#21 shaped->ready, automation_eligible->true. #45 last_known_pr updated to 66 (drake repo confirmed public). #34 reclassified shaped->ready (dep #1 complete). Selector deadlock resolved — three ready automation-eligible product slices now available.",
+    "Post-launch hosted UI refine (2026-06-26): slices #51-#67 added after Aug 25 Show HN gate (#27). Phase 1 read-only dashboard (#51-#64); Phase 2 dispatch (#65-#67). Stack: Next.js + shadcn/ui per research-service UI doctrine port. Model-verification: deploy and GitHub App slices carry operator_gates; cross-repo implementation targets sv-copilot/drake.",
+    "Hosted ops UI refine (2026-06-29): slices #51-#67 tightened around software-operations views; new slices #68-#76 add operator IA, read-model contracts, project detail, MCP pin/release/drift operations, CI/PR read views, run/evidence ingestion, auth boundary, and future dispatch gate design. Cross-repo Drake runtime slices are gated and not automation-eligible; drake-governance remains source for live private registry/tree planning.",
+    "Drake PR #5 reconciliation (2026-06-30): runtime slices #53-#62 and #70 validated against sv-copilot/drake PR #5. Slices #72-#75, #63-#64, and #65-#67 remain gated. See .docs/drake_pr5_slice_reconciliation.md.",
+    "Planning cockpit refine (2026-07-01): schema v3 adds branch_posture per slice (implementation repo, merged branch, promoted branch). Slices #77-#81 track central planning namespace, visibility model, and OSS projection publish path.",
+    "Operator cockpit UI refine (2026-07-01): slices #82-#91 add interactive cockpit for progress, refinement, open questions inbox, and automation trigger panel. Planning docs in drake-governance; runtime in Drake.",
+    "Namespace tree for drake-governance. Generated from flat tree by split_namespace_trees.py.",
+    "Cloud cockpit pipeline refine (2026-07-06): slices #89-#93 add cloud staging deploy, webhook dispatch, single-session pipeline automation prompt, evidence ingestion, and health monitoring. These slices raise the cockpit from localhost/Docker to cloud — prerequisite for automated cloud slice pipelines. All implement in drake-governance (deploy configs, API endpoints, automation prompts, health scripts). Operator gates on #89 (platform choice), #90 (webhook URLs), and #91 (automation creation) require operator action before implementation.",
+    "Source registry refine (2026-07-09): slices #94-#96 add source URL/folder registration API, n8n generic polling pipeline, and Cockpit UI source management panel. #94 is foundation — deploy first. #95 needs cockpit MCP consumer. #96 needs Drake hosted UI foundation.",
+    "Discovery backend refine (2026-07-09): slice #97 enables source discovery by flipping SOURCE_DISCOVERY_ENABLED=true, adding Serper API key, and verifying CrewAI inline processing. Unblocks discovery.import@v1 returning accepted instead of unavailable.",
+    "CrewAI orchestration refine (2026-07-10): slices #98-#103. #98 is running. All implement in drake-governance.",
+    "Credential cockpit refine (2026-07-15): slices #104-#106 add per-repo credential inventory, Postgres encrypted broker on Hetzner cockpit-api, and Drake write-only credentials UI. Operator decisions: C1 Postgres, C2 cockpit staging source of truth, C3 per-repo drill-down, C4 built-in tests, C5 VPN until Clerk. See .docs/cockpit_credentials_doctrine.md (created in #104).",
+    "PLAN-HOSTED-MIGRATE-1 (2026-07-15): Hosted UI slice planning (#51-#76) moved to .docs/planning/projects/drake/.",
+    "CrewAI activation refine (2026-07-16): slices #107-#112 bridge the gap between built-but-unused CrewAI code (#98-#103) and CrewAI actively replacing the simple orchestrator AUDIT/REFINE phases. #107 (Docker deps), #108 (bridge wiring), #109 (agent context), #110 (refine activation), #111 (audit activation), #112 (smoke test + quality comparison). All implement in drake-governance. #112 terminates with an operator decision gate: adopt / hold / revert CrewAI.",
+    "Cockpit control-plane refine (2026-07-16): slices #113-#115 add automation start/stop/pause/resume controls. #113 (per-project toggle API, drake-governance), #114 (global pause/resume API, drake-governance), #115 (control panel UI, drake). #113 and #114 are API-only and can run in sequence. #115 is cross-repo UI in drake, gated on #56 (HOSTED-WEB-SCAFFOLD-1).",
+    "Handmaiden crew refine (2026-07-16): slices #116-#118 add an Infrastructure Steward agent (CrewAI) that monitors VPS health, detects container crashes and API degradation, writes structured problem reports for the PO's refinement pipeline, and produces daily health snapshots. #116 (scaffold + agent + tools, drake-governance), #117 (7-domain monitoring + problem reports, drake-governance), #118 (opt-in auto-heal actions, drake-governance, gated). All implement in drake-governance. #118 has operator gates: auto-heal actions are disabled by default and require explicit approval.",
+    "Cockpit chat refine (2026-07-16): slice #119 adds an operator chat interface — POST /cockpit/chat with agent routing (PO/EL/RM/Steward) and a chat UI in the drake cockpit. API in drake-governance, UI in drake. Uses direct DeepSeek calls initially; upgrades to CrewAI when #110/#111/#116 are active. Depends on #56 (web scaffold), #102 (crew dispatch pattern), #109 (agent context).",
+    "Foreign dependencies (slice numbers not in this tree): [51, 53, 54, 55, 56, 57, 59, 66, 68, 69, 71, 73, 74]",
+    "2026-07-16: Promoted 6 shaped→ready (#40, #96, #112, #115, #118, #119) — deps satisfied, no gates.",
+    "2026-07-16: Added #120 HANDMAIDEN-EL-BRIDGE-1 + cockpit slices #121-#124 (dashboard, log viewer, promotion tracker, cross-project queue).",
+    "2026-07-17: Added #130 HANDMAIDEN-PARANOID-1 — catches data integrity, pipeline logic, API depth, and accessibility failures that infrastructure monitoring misses.",
+    "2026-07-17: Added #132 DRAKE-PROMOTE-GATE-1 (P0), #133 COCKPIT-REFINE-GATE-1 (P0), #134 DRAKE-REFINE-NOTIFY-1 (P1) — fix Drake-Cockpit architectural boundary.",
+    "2026-07-17: Added #135 RUNNER-GUARDRAIL-1 (validated, CrewAI-style guardrail chain) + #136 RUNNER-DOC-MAINTENANCE-1 (ready, doc requirements per implementation).",
+    "2026-07-17: Added #137 VPS-DEV-ENV-1, #138 VPS-DEV-ENV-2, #139 VPS-DEV-ENV-3 — VPS dev environment for implementation repos, orchestrator repo routing, and runner TDD loop. Unblocks cross-repo dispatch and enables actual test execution in cloud automation.",
+    "2026-07-17: Marked #115 (COCKPIT-CONTROL-UI-1) and #119 (COCKPIT-CHAT-1) as shaped + ae=false — companion slices now live in drake tree (#92, #93). These remain as planning artifacts; implementation dispatches from drake.",
+    "Self-building harness refine (2026-07-18): slices #140-#143 add explicit state machine, git-based checkpoint/rewind, closed-loop test→retry gate, and static PR outcome analysis. All shaped; none automation-eligible. #140-#142 are P0 technical foundation. #143 is P1 data-pipeline validation (prerequisite for future LLM meta-agent). See outputs/recommended_slices_self_building_harness_2026-07-18.md and outputs/agentic_dev_best_practices_2026-07-18.md for research context.",
+    "Refinement apply endpoint (2026-07-18): slice #144 COCKPIT-REFINE-APPLY-1 adds POST /refine/apply to close the PO→tree handoff gap. Accepts batch slice definitions + detail docs, validates, writes via GitHub Contents API. Uses same pattern as _push_file_via_api(). Eliminates the last manual gap in the planning→dispatch→implement→tree-sync loop.",
+    "Operator attention endpoint (2026-07-18): slice #145 COCKPIT-ATTENTION-1 adds GET /cockpit/attention — returns gated slices, promotion gaps, and dispatchable counts across all registered repos. Designed for n8n → Telegram/Slack push notifications so the operator knows when input is needed.",
+    "Promotion schedule (2026-07-18): slice #146 COCKPIT-PROMOTE-SCHEDULE-1 adds a 4-hour cron job on the VPS to fast-forward merge ai-dev → dev. Closes the last manual gap in the branch promotion pipeline.",
+    "Cockpit OpenClaw refine (2026-07-20): slices #147-#149 add OpenClaw integration for the Drake pipeline. #147 deploys cockpit MCP server (HTTP, systemd + Caddy, same pattern as JH-MCP-STAGING-DEPLOY-1 #440). #148 creates Drake operator persona (SOUL/IDENTITY/AGENTS/USER + skills, same pattern as Hunt persona in jobhunter). #149 wires MCP + persona into existing cockpit-openclaw container with tool filtering, approval gates, and E2E smoke. All three are P0 — foundation for mobile pipeline control from Telegram. Strictly sequential: #147 → #148 → #149. #147 and #149 are ae=false (VPS deploy required); #148 is ae=true (pure docs/config).",
+    "2026-07-20: Revised #148/#149 — separate cockpit OpenClaw container (cockpit-openclaw-cockpit), not shared with jobhunter. Renamed INTEGRATE-1 → DEPLOY-1.",
+    "Cockpit MCP refinement tools (2026-07-20): slices #150-#151 add three new read-only MCP tools to the deployed cockpit MCP server. #150 adds cockpit_recommend_next (ranked pipeline recommendations) + cockpit_tree_summary (focused per-project tree inspection) via httpx to existing cockpit API endpoints. #151 adds cockpit_validate_tree (run validate_slice_dependency_tree.py via subprocess on VPS). All three are ae=true, autonomous_safe, effort=small. Sequential: #150 → #151 (both modify same server_http.py file).",
+    "Audit remediation wave (2026-07-21): slices #167-#180 address all findings from the July 2026 portfolio audit (.docs/audits/portfolio-audit-2026-07.md). #167 (P0) aligns registry/workspace/CI and disables nascent automation. #168-#170 add model slug defaults, doc health expansion, and tree validator tests. #171-#173 backfill missing docs in research-service, jobhunter, and one-star. #174 documents the ai-dev local validation gate for jobhunter. #175 adds GET /health endpoints. #176-#177 are operator-gated CI re-enablement slices. #178 resolves the one-star worker paradox. #179 populates the empty spencervaradi-site namespace tree. #180 adds an operating contract and registry entry for project-bootstrap. All slices are independent; #171-#175 and #179 can dispatch in parallel (different implementation repos).",
+    "Audit cleanup wave (2026-07-29): slices #182-#184 address leftover cleanup from the July 2026 audit. #182 cleans up research-service (cursor/* branches, orphan slice IDs, stale branches). #183 cleans up jobhunter (same pattern). #184 hardens the audit script itself (false positives, post-edit hook integration). #182-#183 are ae=false (operator review required for orphan slices); #184 is ae=true. All three are independent.",
+    "Drake remediation (2026-08-06): slice #185 COCKPIT-DRAKE-REMEDIATE-1 redeploys the Drake cockpit bot stack (MCP server, persona files, OpenClaw container) that slices #148/#149 were recorded as delivering but did not actually deploy. Hunt and Writing bots were fixed in the same investigation: health checks corrected, Writing config repaired.",
+    "2026-08-08: Added #189 SAIMON-S3-STORAGE-1 — S3 object storage integration for Saimon discovered files. Bucket: myveryspecificallyuniquestoragename (nbg1). Cross-repo: implementation in saimon repo.",
+    "2026-08-08: Added #190 DRAKE-BATCH-DISPATCH-1 — batch slice dispatch with subagent coordination. Groups independent ready slices into single agent session with parallel subagent execution.",
+    "2026-08-10: Added #192-#199 — Cockpit auth unification + UI foundation + operations views + dispatch + saimon integration. Implements Path B unified API-key auth across all Drake MCPs. Cockpit UI replaces vanilla JS interim shell; deploys to cockpit.example.com (prod) / cockpit-staging.example.com (staging). #192 (STAGING-DECOM-MCP) runs first — WireGuard tunnel, route staging agents to prod MCPs, stop staging MCP copies. #193 (AUTH-COCKPIT-MCP) adds X-Cockpit-API-Key auth. #194 (COCKPIT-UI-SCAFFOLD) is gated on framework_choice + dns_records. #195-#199 build on scaffold: ops-home, slice-board, mcp-ops, dispatch, saimon. #199 (COCKPIT-UI-SAIMON) gated on saimon audit issues (CORS, LLM backend, verify false-positive).",
+    "2026-08-12: Added #202 COCKPIT-API-OPENAPI-1 — Track B backend prep for UI lift-and-shift. Documentation-only: create OpenAPI 3.1 spec for existing cockpit API endpoints. No code changes. automation_eligible=false. Prompt: .github/prompts/cockpit-api-openapi.prompt.md.",
+    "2026-08-12: Added #204 DRAKE-EXTRACT-COCKPIT-API-1. The cockpit API (Go, deploy/cline-operator/api/) currently lives in the drake-governance repo alongside Drake core governance. Drake should function independently — the cockpit API is a UI support service, not a governance component. This slice extracts it into sv-copilot/cockpit-api, moves COCKPIT-API-OPENAPI-1 to the new repo's tree, and updates VPS deploy config."
+  ],
+  "defaults": {
+    "planning_repo_id": "drake-governance",
+    "implementation_repo_id": "drake-governance",
+    "integration_branch": "ai-dev"
+  },
+  "slices": [
+    {
+      "slice_id": "ADAPTER-SPEC-1",
+      "slice_number": 1,
+      "group": "technical",
+      "title": "Worker adapter specification: task packet and evidence contract schema",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        2,
+        7,
+        10,
+        12,
+        13,
+        14,
+        34
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "last_known_pr": 36,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "ADAPTER-CURSOR-1",
+      "slice_number": 2,
+      "group": "technical",
+      "title": "Cursor adapter reference implementation",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        1
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "last_known_pr": 62,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "GITHUB-FETCH-1",
+      "slice_number": 3,
+      "group": "technical",
+      "title": "GitHub-as-canonical cloud fetch script extraction",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        54
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 3,
+      "last_known_pr": 37,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "BRANCH-MIGRATE-1",
+      "slice_number": 4,
+      "group": "technical",
+      "title": "Template and config updates for agent/* branch prefix",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        5
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 4,
+      "last_known_pr": 38,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "BRANCH-MIGRATE-2",
+      "slice_number": 5,
+      "group": "technical",
+      "title": "Repo-by-repo branch convention rollout with backward compatibility",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        4
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 5,
+      "last_known_pr": 64,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "DRY-RUN-1",
+      "slice_number": 6,
+      "group": "technical",
+      "title": "Local dry-run and CI preflight improvements",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 6,
+      "last_known_pr": 40,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "STATE-MODEL-1",
+      "slice_number": 7,
+      "group": "technical",
+      "title": "Slice lifecycle state model schema extension",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        1
+      ],
+      "blocks": [
+        8,
+        9
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 7,
+      "last_known_pr": 42,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "STATE-MODEL-2",
+      "slice_number": 8,
+      "group": "technical",
+      "title": "Run history artifact conventions",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        7
+      ],
+      "blocks": [
+        59,
+        69,
+        74
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 8,
+      "last_known_pr": 45,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "DEP-TREE-V2",
+      "slice_number": 9,
+      "group": "technical",
+      "title": "Dependency tree schema v2 with backward-compatible migration",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        7
+      ],
+      "blocks": [
+        12
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 9,
+      "last_known_pr": 47,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "MCP-PROFILES-1",
+      "slice_number": 10,
+      "group": "technical",
+      "title": "MCP environment profile schema and validation tooling",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        1
+      ],
+      "blocks": [
+        11,
+        69,
+        71
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 10,
+      "last_known_pr": 49,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "MCP-PROFILES-2",
+      "slice_number": 11,
+      "group": "technical",
+      "title": "MCP profile scaffold integration and placeholder generation",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        10
+      ],
+      "blocks": [
+        71
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 11,
+      "last_known_pr": 50,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "REGISTRY-V2",
+      "slice_number": 12,
+      "group": "technical",
+      "title": "Registry schema v2 with adapter types and multi-worker support",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        1,
+        9
+      ],
+      "blocks": [
+        55,
+        69
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 12,
+      "last_known_pr": 51,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "SECRETS-ISO-1",
+      "slice_number": 13,
+      "group": "technical",
+      "title": "Multi-worker credential declaration conventions",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        1
+      ],
+      "blocks": [
+        66
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 13,
+      "last_known_pr": 54,
+      "risk": "medium",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "VALIDATION-PARITY-1",
+      "slice_number": 14,
+      "group": "technical",
+      "title": "Validation result format for cross-runtime parity",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        1
+      ],
+      "blocks": [
+        69,
+        73,
+        74
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 14,
+      "last_known_pr": 56,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "HOSTED-ARCH-1",
+      "slice_number": 15,
+      "group": "technical",
+      "title": "Hosted UI/API architecture direction sketch",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        51,
+        53,
+        68
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 15,
+      "last_known_pr": 58,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-NAME-1",
+      "slice_number": 16,
+      "group": "product",
+      "title": "Drake naming and two-repository launch policy",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        43
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 16,
+      "last_known_pr": 61,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-README-1",
+      "slice_number": 17,
+      "group": "product",
+      "title": "README restructure for OSS audience",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        45
+      ],
+      "blocks": [
+        47,
+        48,
+        18,
+        49,
+        50
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 17,
+      "last_known_pr": 70,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DOCS-1",
+      "slice_number": 18,
+      "group": "product",
+      "title": "docs/ directory: concepts, guides, reference [ARCHIVED — split into #47-#50]",
+      "state": "archived",
+      "status": "blocked",
+      "dependencies": [
+        17
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "archived: replaced by sub-slices PROD-DOCS-CONCEPTS (#47), PROD-DOCS-GUIDES (#48), PROD-DOCS-REF (#49), PROD-DOCS-EXAMPLES (#50)"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 18,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "large",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-LICENSE-1",
+      "slice_number": 19,
+      "group": "product",
+      "title": "OSS license application (Apache 2.0)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        43
+      ],
+      "blocks": [
+        20,
+        45
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 19,
+      "last_known_pr": 65,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-CONTRIB-1",
+      "slice_number": 20,
+      "group": "product",
+      "title": "Contribution guide + DCO + issue templates",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        19
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 20,
+      "last_known_pr": 71,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DIAGRAMS-1",
+      "slice_number": 21,
+      "group": "product",
+      "title": "Architecture diagrams (layers, lifecycle, topology)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        25,
+        30,
+        32
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 21,
+      "last_known_pr": 74,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-GSG-1",
+      "slice_number": 22,
+      "group": "product",
+      "title": "Getting-started guide (empty repo to first PR)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        47,
+        48
+      ],
+      "blocks": [
+        23,
+        24,
+        26
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 22,
+      "last_known_pr": 120,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-BOOTSTRAP-1",
+      "slice_number": 23,
+      "group": "product",
+      "title": "Bootstrap script polish and intake UX",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        22
+      ],
+      "blocks": [
+        24,
+        26
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 23,
+      "last_known_pr": null,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-DEMO-1",
+      "slice_number": 24,
+      "group": "product",
+      "title": "Demo video script and recording",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        22,
+        23
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "video_recording: agent can write script and storyboard but cannot record or edit video; operator (human) must record, voiceover, and publish"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 24,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-WHITEPAPER-1",
+      "slice_number": 25,
+      "group": "product",
+      "title": "Whitepaper / concept doc",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        21
+      ],
+      "blocks": [
+        27,
+        36
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 25,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-DRYTEST-1",
+      "slice_number": 26,
+      "group": "product",
+      "title": "Dry-run external test (friend clones and runs)",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        22,
+        23
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "external_human: requires a person not named Simon to clone the repo and follow the getting-started guide; agent can write test instructions and a feedback collection template but cannot run the test"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 26,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-HNPOST-1",
+      "slice_number": 27,
+      "group": "product",
+      "title": "HN launch post draft",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        45,
+        25
+      ],
+      "blocks": [
+        35,
+        51
+      ],
+      "operator_gates": [
+        "human_publish: agent drafts the Show HN post and first comment; operator must post to HN (requires account), monitor responses for 48h, and reply to comments"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 27,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-DOMAIN-1",
+      "slice_number": 28,
+      "group": "product",
+      "title": "Domain registration and landing page",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        45
+      ],
+      "blocks": [
+        39
+      ],
+      "operator_gates": [
+        "domain_purchase: agent can check availability via whois/web-search and write landing page HTML; domain registration requires operator payment and registrar account"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 28,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-SOCIAL-1",
+      "slice_number": 29,
+      "group": "product",
+      "title": "Social presence setup (Twitter, dev.to, Discord)",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        45
+      ],
+      "blocks": [
+        33,
+        37,
+        42
+      ],
+      "operator_gates": [
+        "account_creation: agent can draft profile bios and initial posts; account creation on Twitter/X, dev.to, and Discord requires operator login credentials and manual account setup"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 29,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-CASES-1",
+      "slice_number": 30,
+      "group": "product",
+      "title": "Case study writeups (4 repos, research-service worker, smoke slice, parity)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        21
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 30,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-COMPARE-1",
+      "slice_number": 31,
+      "group": "product",
+      "title": "Comparison / positioning page (vs Cursor, Cline, OpenHands, etc.)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        49
+      ],
+      "blocks": [
+        35
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 31,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-TRUST-1",
+      "slice_number": 32,
+      "group": "product",
+      "title": "Trust and security model document",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        21
+      ],
+      "blocks": [
+        40
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 32,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-GOVERN-1",
+      "slice_number": 33,
+      "group": "product",
+      "title": "Community guidelines + GOVERNANCE.md",
+      "state": "shaped",
+      "status": "ready",
+      "dependencies": [
+        29
+      ],
+      "blocks": [
+        37
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 33,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-CLINE-ADAPTER-1",
+      "slice_number": 34,
+      "group": "product",
+      "title": "First non-Cursor adapter contract (Cline recommended)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        1
+      ],
+      "blocks": [
+        38
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 34,
+      "last_known_pr": 76,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-REDDIT-1",
+      "slice_number": 35,
+      "group": "product",
+      "title": "Reddit and Discord launch posts",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        27,
+        31
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "human_publish: agent drafts Reddit/Discord posts; operator must post (requires Reddit account and Discord server membership), respect subreddit self-promotion rules, and monitor responses"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 35,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-DEVTO-1",
+      "slice_number": 36,
+      "group": "product",
+      "title": "dev.to cross-post of whitepaper",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        25
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "human_publish: agent adapts whitepaper for dev.to format; operator must create/publish the dev.to post (requires dev.to account)"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 36,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-CHECKIN-1",
+      "slice_number": 37,
+      "group": "product",
+      "title": "Weekly community check-in cadence",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        29,
+        33
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "ongoing_human_activity: agent writes the check-in template, cadence schedule, and initial draft posts; the actual weekly check-ins require ongoing operator presence in community channels"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 37,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-SHOWCASE-1",
+      "slice_number": 38,
+      "group": "product",
+      "title": "Community adapter showcase (first external adapter)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        34
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 38,
+      "last_known_pr": 168,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-PRICING-1",
+      "slice_number": 39,
+      "group": "product",
+      "title": "Pricing page and waitlist for hosted layer",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        28
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "deployment_infra: agent writes page content and waitlist copy; deploying a live page with email-capture waitlist requires web hosting and an email collection service (e.g. ConvertKit, Mailchimp, or a simple form backend)"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 39,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-ENTERPRISE-1",
+      "slice_number": 40,
+      "group": "product",
+      "title": "Enterprise interest landing page",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        32
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 40,
+      "last_known_pr": 610,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-DOCS-MAINT-1",
+      "slice_number": 41,
+      "group": "product",
+      "title": "Ongoing docs maintenance (guides, examples, FAQs)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        47,
+        48,
+        49,
+        50
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 41,
+      "last_known_pr": 187,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-TWITTER-1",
+      "slice_number": 42,
+      "group": "product",
+      "title": "Twitter thread series ('slice of the week', 'failure mode Monday')",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        29
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "human_publish: agent drafts thread content; operator must post threads (requires Twitter/X account) and engage with replies"
+      ],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 42,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PROD-DRAKE-MANIFEST-1",
+      "slice_number": 43,
+      "group": "product",
+      "title": "Drake public export manifest and rewrite rules",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        16
+      ],
+      "blocks": [
+        44,
+        19
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 43,
+      "last_known_pr": 61,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DRAKE-EXPORT-1",
+      "slice_number": 44,
+      "group": "product",
+      "title": "Drake export and scrub tooling",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        43
+      ],
+      "blocks": [
+        45
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 44,
+      "last_known_pr": 63,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DRAKE-PUBLISH-1",
+      "slice_number": 45,
+      "group": "product",
+      "title": "Create public Drake GitHub repository",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        44,
+        19
+      ],
+      "blocks": [
+        17,
+        27,
+        28,
+        29,
+        46
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 45,
+      "last_known_pr": 66,
+      "risk": "medium",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DRAKE-PRIVATE-1",
+      "slice_number": 46,
+      "group": "product",
+      "title": "Private operator repo wiring after public Drake launch",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        45
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 46,
+      "last_known_pr": 66,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DOCS-CONCEPTS",
+      "slice_number": 47,
+      "group": "product",
+      "title": "docs/concepts/ — architecture concepts, design philosophy, and governance model",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        17
+      ],
+      "blocks": [
+        22,
+        41
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 47,
+      "last_known_pr": 80,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DOCS-GUIDES",
+      "slice_number": 48,
+      "group": "product",
+      "title": "docs/guides/ — step-by-step operator and contributor guides",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        17
+      ],
+      "blocks": [
+        22,
+        41
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 48,
+      "last_known_pr": 81,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DOCS-REF",
+      "slice_number": 49,
+      "group": "product",
+      "title": "docs/reference/ — API reference, schema docs, and contract specifications",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        17
+      ],
+      "blocks": [
+        31,
+        41
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 49,
+      "last_known_pr": 82,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PROD-DOCS-EXAMPLES",
+      "slice_number": 50,
+      "group": "product",
+      "title": "docs/examples/ — worked examples and use-case walkthroughs",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        17
+      ],
+      "blocks": [
+        41
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 50,
+      "last_known_pr": 83,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PLAN-BRANCH-POSTURE-1",
+      "slice_number": 77,
+      "group": "technical",
+      "title": "Slice branch posture schema v3 for integration and promotion tracking",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        9
+      ],
+      "blocks": [
+        78,
+        86
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 77,
+      "last_known_pr": 86,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": "cursor/hosted-ops-ui-refine-4793",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "PLAN-VISIBILITY-MODEL-1",
+      "slice_number": 78,
+      "group": "technical",
+      "title": "Central planning visibility model and registry planning_root fields",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        77
+      ],
+      "blocks": [
+        79,
+        80
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 78,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PLAN-NAMESPACE-1",
+      "slice_number": 79,
+      "group": "technical",
+      "title": "Migrate per-repo planning trees into .docs/planning/projects namespace",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        78
+      ],
+      "blocks": [
+        80,
+        81
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 79,
+      "last_known_pr": null,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PLAN-PUBLISH-PROJECTION-1",
+      "slice_number": 80,
+      "group": "technical",
+      "title": "Publish redacted planning projections into OSS repos",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        78,
+        79,
+        44
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 80,
+      "last_known_pr": 188,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "PLAN-HOSTED-MIGRATE-1",
+      "slice_number": 81,
+      "group": "technical",
+      "title": "Move hosted UI slice planning into drake planning namespace",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        79
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 81,
+      "last_known_pr": 111,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev",
+        "last_known_pr": 111
+      }
+    },
+    {
+      "slice_id": "COCKPIT-DOCTRINE-1",
+      "slice_number": 82,
+      "group": "technical",
+      "title": "Operator cockpit doctrine for progress, refinement, questions, and trigger workflows",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        51,
+        68,
+        77
+      ],
+      "blocks": [
+        83
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 82,
+      "last_known_pr": 86,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": "cursor/hosted-ops-ui-refine-4793",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-IA-1",
+      "slice_number": 83,
+      "group": "technical",
+      "title": "Operator cockpit route map and navigation boundaries",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        68,
+        82
+      ],
+      "blocks": [
+        84
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 83,
+      "last_known_pr": 87,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": "agent/cockpit-ia-1-route-map",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-READ-MODELS-1",
+      "slice_number": 84,
+      "group": "technical",
+      "title": "Cockpit read models for progress, refinement sessions, questions, and trigger previews",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        69,
+        77,
+        83
+      ],
+      "blocks": [
+        85,
+        86,
+        87,
+        88
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 84,
+      "last_known_pr": 88,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": "agent/cockpit-read-models-1",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-QUESTIONS-SCHEMA-1",
+      "slice_number": 85,
+      "group": "technical",
+      "title": "Operator open questions schema and seeded inbox file",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        84
+      ],
+      "blocks": [
+        87
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 85,
+      "last_known_pr": 90,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": "agent/cockpit-questions-schema-1",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-MCP-SERVER-1",
+      "slice_number": 86,
+      "group": "technical",
+      "title": "Local Cockpit MCP server wrapping the cockpit API for native Cline tool calls",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        84
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 86,
+      "last_known_pr": 102,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-HOOKS-1",
+      "slice_number": 87,
+      "group": "technical",
+      "title": "Cline pre-commit hooks for JSON validation, branch conventions, and diff checks",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 87,
+      "last_known_pr": 94,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": "agent/cockpit-hooks-1",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "CLINE-PROMPT-DEPRECATE-1",
+      "slice_number": 88,
+      "group": "technical",
+      "title": "Deprecate redundant .cline/prompts/ — mark as @deprecated and verify skill coverage",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 88,
+      "last_known_pr": 104,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CLOUD-STAGING-1",
+      "slice_number": 89,
+      "group": "technical",
+      "title": "Deploy cockpit API to cloud staging with git-sync planning data",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        90
+      ],
+      "operator_gates": [
+        "cloud_platform_choice: operator must choose Railway, Fly.io, or Render and provide account credentials",
+        "github_token_scoped: operator must create fine-grained PAT with Contents read on sv-copilot/drake-governance for git-sync"
+      ],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 89,
+      "last_known_pr": 98,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev",
+        "last_known_pr": 98
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CLOUD-WEBHOOK-1",
+      "slice_number": 90,
+      "group": "technical",
+      "title": "Webhook dispatch endpoint that triggers cloud slice-pipeline automations",
+      "state": "gated",
+      "status": "gated",
+      "dependencies": [
+        89
+      ],
+      "blocks": [
+        91
+      ],
+      "operator_gates": [
+        "strategic_pivot: operator moving from Cursor Cloud to self-hosted runner. Webhook dispatch to Cursor Cloud automations is deprecated. Queue.json polling by self-hosted runner-cron replaces cloud webhook dispatch. Retain slice for future multi-worker webhook dispatch."
+      ],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 90,
+      "last_known_pr": null,
+      "risk": "medium",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CLOUD-PIPELINE-1",
+      "slice_number": 91,
+      "group": "technical",
+      "title": "Cloud slice-pipeline automation prompt — single-session preflight → implement → tree-sync without subagents",
+      "state": "gated",
+      "status": "gated",
+      "dependencies": [
+        89,
+        90
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "strategic_pivot: operator moving from Cursor Cloud to self-hosted runner. Cursor Cloud automation prompt superseded by CrewAI runner (#103 validated) + self-hosted Cline worker. Single-session-no-subagent pattern preserved in .cline/skills/slice-pipeline-manual/."
+      ],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 91,
+      "last_known_pr": null,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CLOUD-EVIDENCE-1",
+      "slice_number": 92,
+      "group": "technical",
+      "title": "Run evidence ingestion endpoint for cloud pipeline workers",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        89
+      ],
+      "blocks": [
+        93
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 92,
+      "last_known_pr": 105,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CLOUD-MONITOR-1",
+      "slice_number": 93,
+      "group": "technical",
+      "title": "Pipeline health monitoring, run status tracking, and failure alerting",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        89,
+        92
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 93,
+      "last_known_pr": 189,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-SOURCE-REGISTRY-API-1",
+      "slice_number": 94,
+      "group": "technical",
+      "title": "Cockpit Source Registry API — CRUD endpoints for source URLs/folders",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        95
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "last_known_pr": 106
+    },
+    {
+      "slice_id": "COCKPIT-SOURCE-PIPELINE-1",
+      "slice_number": 95,
+      "group": "technical",
+      "title": "n8n Generic Source Poller — polls registry, fetches content, calls MCP import",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        94
+      ],
+      "blocks": [
+        96
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "research-service",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "last_known_pr": 190
+    },
+    {
+      "slice_id": "COCKPIT-SOURCE-UI-1",
+      "slice_number": 96,
+      "group": "product",
+      "title": "Cockpit Source Management UI — interactive panel for source CRUD",
+      "state": "ready",
+      "status": "ready",
+      "dependencies": [
+        94,
+        55,
+        56,
+        57
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "Drake hosted UI foundation slices #55-57 must be implemented first"
+      ],
+      "checkpoint": "medium-risk",
+      "automation_eligible": false,
+      "priority": 3,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P2",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake",
+        "integration_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-DISCOVERY-BACKEND-1",
+      "slice_number": 97,
+      "group": "technical",
+      "title": "Enable Discovery Backend — flip feature flag, add Serper key, verify CrewAI",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        94
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "research-service",
+        "integration_branch": "ai-dev",
+        "notes": "Manual execution in research-service. Serper key in .env.",
+        "merged_branch": "ai-dev"
+      },
+      "last_known_pr": 191
+    },
+    {
+      "slice_id": "CREWAI-SCAFFOLD-1",
+      "slice_number": 98,
+      "group": "technical",
+      "title": "CrewAI Orchestrator Scaffold — Python project structure, dependencies, smoke test",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [
+        99,
+        100
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": 99
+    },
+    {
+      "slice_id": "CREWAI-TOOLS-1",
+      "slice_number": 99,
+      "group": "technical",
+      "title": "Shared CrewAI Tool Suite — git, gh CLI, filesystem, cockpit API, validation wrappers",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        98
+      ],
+      "blocks": [
+        100
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": 100
+    },
+    {
+      "slice_id": "CREWAI-AGENTS-1",
+      "slice_number": 100,
+      "group": "technical",
+      "title": "CrewAI Agent Definitions — PO, EL, RM agents with roles, goals, backstories, and tool assignments",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        98,
+        99
+      ],
+      "blocks": [
+        101,
+        102
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": 101
+    },
+    {
+      "slice_id": "CREWAI-CREWS-1",
+      "slice_number": 101,
+      "group": "technical",
+      "title": "Crew Definitions — refinement crew, audit crew, sync crew with sequential task pipelines",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        100
+      ],
+      "blocks": [
+        102
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "last_known_pr": 107
+    },
+    {
+      "slice_id": "CREWAI-COCKPIT-1",
+      "slice_number": 102,
+      "group": "technical",
+      "title": "Cockpit API CrewAI Integration — dispatch endpoint, run tracking, evidence contracts",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        100,
+        101
+      ],
+      "blocks": [
+        103
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "last_known_pr": 108
+    },
+    {
+      "slice_id": "CREWAI-RUNNER-1",
+      "slice_number": 103,
+      "group": "technical",
+      "title": "CrewAI Background Runner — polls cockpit, dispatches ready slices to crews, writes run logs",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        102
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "last_known_pr": 109
+    },
+    {
+      "slice_id": "COCKPIT-CREDENTIALS-INVENTORY-1",
+      "slice_number": 104,
+      "group": "technical",
+      "title": "Per-repo credential inventory API (read-only)",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        13,
+        89
+      ],
+      "blocks": [
+        105
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "last_known_pr": 192,
+      "risk": "medium",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CREDENTIALS-BROKER-1",
+      "slice_number": 105,
+      "group": "technical",
+      "title": "Postgres encrypted credential broker (write-only API)",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        92,
+        104
+      ],
+      "blocks": [
+        106
+      ],
+      "operator_gates": [
+        "encryption_key: operator sets COCKPIT_SECRETS_MASTER_KEY on Hetzner staging VPS; never commit value",
+        "postgres_staging: Postgres container on same Hetzner VPS per oq-postgres-hosting-hetzner",
+        "vpn_staging: credential write API reachable only behind VPN until UI-OPS-AUTH-READONLY-1 (#75) Clerk"
+      ],
+      "checkpoint": "high-risk",
+      "automation_eligible": false,
+      "priority": 1,
+      "last_known_pr": null,
+      "risk": "high",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CREDENTIALS-UI-1",
+      "slice_number": 106,
+      "group": "technical",
+      "title": "Cockpit credentials UI (per-repo, write-only)",
+      "state": "gated",
+      "status": "ready",
+      "dependencies": [
+        105
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "cross_repo: UI in sv-copilot/drake apps/web",
+        "vpn_staging: disable write actions from public internet until Clerk auth #75; VPN allowlist OK per oq-cockpit-credentials-policy",
+        "cockpit_api_url: COCKPIT_API_BASE_URL must point at Hetzner staging cockpit-api"
+      ],
+      "checkpoint": "high-risk",
+      "automation_eligible": false,
+      "priority": 2,
+      "last_known_pr": null,
+      "risk": "high",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "CREWAI-DOCKER-1",
+      "slice_number": 107,
+      "group": "technical",
+      "title": "Add CrewAI dependencies to runner Docker image — pip install crewai in Dockerfile.runner",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        98
+      ],
+      "blocks": [
+        108,
+        109
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "last_known_pr": 193,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "CREWAI-ORCHESTRATOR-BRIDGE-1",
+      "slice_number": 108,
+      "group": "technical",
+      "title": "Wire CrewAI crew definitions into orchestrator phase selection — replace DeepSeek calls in AUDIT/REFINE with crew.kickoff(), keep FAN-OUT unchanged",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        101,
+        107
+      ],
+      "blocks": [
+        110,
+        111
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "last_known_pr": 197,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "CREWAI-AGENT-CONTEXT-1",
+      "slice_number": 109,
+      "group": "technical",
+      "title": "Wire cockpit API live context into CrewAI agents — PO/EL/RM get progress summaries, promotion gaps, and run history via existing tool suite",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        89,
+        100
+      ],
+      "blocks": [
+        110,
+        111
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "last_known_pr": 194,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "CREWAI-REFINE-CREW-1",
+      "slice_number": 110,
+      "group": "technical",
+      "title": "Activate refinement crew — PO agent shapes slices from problem reports with cockpit context, replaces single-pass DeepSeek refinement",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        108,
+        109
+      ],
+      "blocks": [
+        112
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 3,
+      "last_known_pr": 198,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "CREWAI-AUDIT-CREW-1",
+      "slice_number": 111,
+      "group": "technical",
+      "title": "Activate audit crew — EL+RM agents produce richer multi-agent audit reports with cockpit context, replaces 4 sequential DeepSeek calls",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        108,
+        109
+      ],
+      "blocks": [
+        112
+      ],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 3,
+      "last_known_pr": 199,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "CREWAI-SMOKE-1",
+      "slice_number": 112,
+      "group": "technical",
+      "title": "End-to-end CrewAI smoke test — full refinement+audit cycle with CrewAI, compare quality against DeepSeek baseline, operator decision gate",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        110,
+        111
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 4,
+      "last_known_pr": "manual-override",
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      },
+      "notes": "Operator override 2026-07-17: implementation exists, orchestrator runner stuck on text-only output. Marking validated to unblock queue."
+    },
+    {
+      "slice_id": "COCKPIT-CONTROL-TOGGLE-1",
+      "slice_number": 113,
+      "group": "technical",
+      "title": "Per-project automation toggle API — enable/disable automation per repo via cockpit API, orchestrator checks each tick",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        89
+      ],
+      "blocks": [
+        114,
+        115
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "last_known_pr": 195,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CONTROL-PAUSE-1",
+      "slice_number": 114,
+      "group": "technical",
+      "title": "Global automation pause/resume API — pause all automation with optional TTL, orchestrator checks before each tick",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        113
+      ],
+      "blocks": [
+        115
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "last_known_pr": 200,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CONTROL-UI-1",
+      "slice_number": 115,
+      "group": "product",
+      "title": "Automation control panel UI — per-project toggles + global pause button in drake cockpit, writes via cockpit API",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        113,
+        114
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 3,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      },
+      "operator_gate": []
+    },
+    {
+      "slice_id": "HANDMAIDEN-SCAFFOLD-1",
+      "slice_number": 116,
+      "group": "technical",
+      "title": "Infrastructure Steward agent + Docker/system tool suite + 60s health check loop — detects container crashes and API degradation",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        98,
+        99
+      ],
+      "blocks": [
+        117,
+        118
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 1,
+      "last_known_pr": 196,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "HANDMAIDEN-MONITOR-1",
+      "slice_number": 117,
+      "group": "technical",
+      "title": "7-domain monitoring loop — containers, resources, APIs, throughput, error logs, restart loops, disk growth — with structured problem reports and daily health snapshots",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        116
+      ],
+      "blocks": [
+        118
+      ],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 2,
+      "last_known_pr": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "HANDMAIDEN-AUTOHEAL-1",
+      "slice_number": 118,
+      "group": "technical",
+      "title": "Opt-in auto-heal actions — container restart, image pruning, log rotation — all disabled by default, gated behind operator approval",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        117
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 3,
+      "last_known_pr": "PR",
+      "risk": "medium",
+      "effort": "small",
+      "tier": "P1",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      },
+      "notes": "Operator decision 2026-07-16: Auto-heal approved."
+    },
+    {
+      "slice_id": "COCKPIT-CHAT-1",
+      "slice_number": 119,
+      "group": "product",
+      "title": "Operator Chat — conversational interface to PO/EL/RM/Steward agents in the cockpit, with intent routing, streaming responses, and session history",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [
+        102,
+        109
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "medium-risk",
+      "automation_eligible": true,
+      "priority": 4,
+      "last_known_pr": null,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      },
+      "operator_gate": []
+    },
+    {
+      "slice_id": "HANDMAIDEN-EL-BRIDGE-1",
+      "slice_number": 120,
+      "title": "Handmaiden → Engineering Lead problem escalation pipeline",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        111,
+        117
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 201,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-DASHBOARD-1",
+      "slice_number": 121,
+      "title": "Cockpit runtime dashboard — queue depth, throughput, errors, uptime",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 202,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-LOG-VIEWER-1",
+      "slice_number": 122,
+      "title": "Cockpit log viewer — stream orchestrator logs to UI with filters",
+      "state": "validated",
+      "status": "done",
+      "tier": "P2",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 203,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-PROMOTION-TRACKER-1",
+      "slice_number": 123,
+      "title": "Cockpit promotion gap tracker — see promotable vs stuck slices",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 204,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CROSS-PROJECT-QUEUE-1",
+      "slice_number": 124,
+      "title": "Cross-project queue view — all ready slices across repos in one table",
+      "state": "validated",
+      "status": "done",
+      "tier": "P2",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 205,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-ANALYTICS-BACKEND-1",
+      "slice_number": 125,
+      "title": "Slice completion analytics backend",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [
+        126
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 208,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-ANALYTICS-UI-1",
+      "slice_number": 126,
+      "title": "Slice throughput line graphs",
+      "state": "validated",
+      "status": "done",
+      "tier": "P2",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        125
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 209,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-VERIFY-HARDEN-1",
+      "slice_number": 127,
+      "title": "Harden orchestrator verification — git diff, PR existence, file sanity",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [
+        128
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": "direct-push",
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "HANDMAIDEN-INTEGRITY-CHECK-1",
+      "slice_number": 128,
+      "title": "Handmaiden slice integrity audit — detect false positives, missing evidence",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        127,
+        117
+      ],
+      "blocks": [
+        129
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 211,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "HANDMAIDEN-AUTO-REVERT-1",
+      "slice_number": 129,
+      "title": "Handmaiden auto-revert false positives — reset to ready with notification",
+      "state": "validated",
+      "status": "done",
+      "tier": "P2",
+      "effort": "small",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [
+        128,
+        118
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [
+        "requires_operator_approval",
+        "rate_limited: max 3/hour"
+      ],
+      "last_known_pr": 604,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "HANDMAIDEN-PARANOID-1",
+      "slice_number": 130,
+      "title": "Handmaiden paranoid health check — data integrity, pipeline logic, API depth, external access, container completeness",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        117
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": "PR",
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "HANDMAIDEN-DOC-AUDIT-1",
+      "slice_number": 131,
+      "title": "Handmaiden doc audit — detect and auto-generate missing slice detail docs",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        117
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": "596",
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "DRAKE-PROMOTE-GATE-1",
+      "slice_number": 132,
+      "title": "Documented promotion — quality gate + Cockpit notification before promotion",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [
+        133
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 599,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-REFINE-GATE-1",
+      "slice_number": 133,
+      "title": "Cockpit refinement control — API + UI for guiding Drake refinement",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "effort": "large",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [
+        132
+      ],
+      "blocks": [
+        134
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 600,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "DRAKE-REFINE-NOTIFY-1",
+      "slice_number": 134,
+      "title": "Drake refinement notification — route tree mutations through Cockpit, stop bypassing",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "medium",
+      "risk": "medium",
+      "automation_eligible": false,
+      "dependencies": [
+        133
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [
+        "requires_careful_deploy: changes write path for all tree mutations",
+        "requires_rollback_plan: Cockpit downtime must not block Drake"
+      ],
+      "last_known_pr": null
+    },
+    {
+      "slice_id": "RUNNER-GUARDRAIL-1",
+      "slice_number": 135,
+      "title": "CrewAI-style task guardrail chain — validate LLM output before acceptance with auto-retry",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [
+        136
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": "direct-push",
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "RUNNER-DOC-MAINTENANCE-1",
+      "slice_number": 136,
+      "title": "Implementation documentation requirements — ADRs, slice completion notes, strategy alignment",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        135
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 601,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "VPS-DEV-ENV-1",
+      "slice_number": 137,
+      "title": "Clone implementation repos + install dev dependencies on VPS",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": false,
+      "dependencies": [],
+      "blocks": [
+        138
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "VPS-DEV-ENV-2",
+      "slice_number": 138,
+      "title": "Orchestrator repo routing — dispatch slices to /data/repos/<repo-id> instead of planning repo",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        137
+      ],
+      "blocks": [
+        139
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 602,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "VPS-DEV-ENV-3",
+      "slice_number": 139,
+      "title": "Runner TDD loop — run actual test suites (pytest, npm test) before committing",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "effort": "medium",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [
+        138
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 603,
+      "branch_posture": {
+        "merged_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "STATE-MACHINE-1",
+      "slice_number": 140,
+      "group": "technical",
+      "title": "Explicit orchestrator state machine — formalize implicit linear flow into named states with transitions",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [
+        141,
+        142
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 605,
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "status": "done"
+    },
+    {
+      "slice_id": "CHECKPOINT-REWIND-1",
+      "slice_number": 141,
+      "group": "technical",
+      "title": "Git-based checkpoint/rewind — safety net for autonomous iteration using git stash/checkout",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        139,
+        140
+      ],
+      "blocks": [
+        142
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 606,
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "status": "done"
+    },
+    {
+      "slice_id": "VERIFY-LOOP-1",
+      "slice_number": 142,
+      "group": "technical",
+      "title": "Closed-loop test→retry gate — feed test failures back to model for corrective iteration within same slice run",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "medium",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [
+        135,
+        139,
+        140,
+        141
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 607,
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "status": "done"
+    },
+    {
+      "slice_id": "META-STATIC-1",
+      "slice_number": 143,
+      "group": "technical",
+      "title": "Static PR outcome analysis script — compute guardrail/retry/dep-health metrics without LLM, validating data pipeline before meta-agent",
+      "state": "validated",
+      "tier": "P1",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        110,
+        111,
+        142
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": 608,
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "status": "done"
+    },
+    {
+      "slice_id": "COCKPIT-REFINE-APPLY-1",
+      "slice_number": 144,
+      "group": "cockpit",
+      "title": "Refinement apply endpoint — close the PO→tree handoff gap via GitHub Contents API",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "medium",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": 611
+    },
+    {
+      "slice_id": "COCKPIT-ATTENTION-1",
+      "slice_number": 145,
+      "group": "cockpit",
+      "title": "Operator attention endpoint — GET /cockpit/attention for n8n→Telegram push notifications",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": 612
+    },
+    {
+      "slice_id": "COCKPIT-PROMOTE-SCHEDULE-1",
+      "slice_number": 146,
+      "group": "cockpit",
+      "title": "4-hour ai-dev→dev promotion cron — fast-forward merge on schedule",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": 615
+    },
+    {
+      "slice_id": "COCKPIT-MCP-DEPLOY-1",
+      "slice_number": 147,
+      "group": "cockpit",
+      "title": "Deploy Cockpit MCP server as HTTP service on VPS — systemd + Caddy + streamable-http wrapping cockpit API tools for OpenClaw access",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [
+        148,
+        150
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [
+        {
+          "id": "VPS-DEPLOY-147",
+          "state": "open",
+          "reason": "Requires SSH to VPS: copy server files, install systemd unit, reload Caddy. Automation cannot SSH to production VPS."
+        }
+      ],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-OPENCLAW-PERSONA-1",
+      "slice_number": 148,
+      "group": "cockpit",
+      "title": "Drake 🏴‍☠️ operator persona for separate cockpit OpenClaw container",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        147
+      ],
+      "blocks": [
+        149
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push",
+      "notes": "Remediated by #185 (COCKPIT-DRAKE-REMEDIATE-1) — persona files deployed to VPS on 2026-08-06."
+    },
+    {
+      "slice_id": "COCKPIT-OPENCLAW-DEPLOY-1",
+      "slice_number": 149,
+      "group": "cockpit",
+      "title": "Deploy separate cockpit OpenClaw container on VPS with Drake persona and cockpit MCP",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "medium",
+      "automation_eligible": false,
+      "dependencies": [
+        147,
+        148
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [
+        {
+          "id": "VPS-CONFIG-149",
+          "state": "open",
+          "reason": "Must stop OpenClaw container → write config → restart. Manual because container file locks prevent remote config writes."
+        }
+      ],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push",
+      "operator_gates": [
+        {
+          "id": "OQ-20260720-TELEGRAM-BOT",
+          "state": "open",
+          "reason": "Operator must create @sv_cockpit_bot via @BotFather and provide token."
+        },
+        {
+          "id": "OQ-20260720-VPS-DEPLOY",
+          "state": "open",
+          "reason": "Operator must SSH to create /root/openclaw-cockpit/ directory, docker compose up."
+        }
+      ],
+      "notes": "Remediated by #185 (COCKPIT-DRAKE-REMEDIATE-1) — config, docker-compose, and container deployed on 2026-08-06."
+    },
+    {
+      "slice_id": "COCKPIT-MCP-RECOMMEND-1",
+      "slice_number": 150,
+      "group": "cockpit",
+      "title": "Add cockpit_recommend_next + cockpit_tree_summary MCP tools — ranked pipeline recommendations and focused per-project tree inspection from Telegram",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        147
+      ],
+      "blocks": [
+        151
+      ],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-VALIDATE-1",
+      "slice_number": 151,
+      "group": "cockpit",
+      "title": "Add cockpit_validate_tree MCP tool — run planning tree validation from Telegram via subprocess on VPS",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        150
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-CREATE-PROJECT-1",
+      "slice_number": 152,
+      "group": "cockpit",
+      "title": "Add cockpit_create_project MCP tool — register new projects from Telegram via GitHub Contents API",
+      "state": "validated",
+      "tier": "P0",
+      "effort": "small",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [
+        151
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-CREATE-REPO-1",
+      "slice_number": 153,
+      "group": "cockpit",
+      "title": "Add cockpit_create_repo MCP tool — create GitHub repos for registered projects via API",
+      "state": "validated",
+      "tier": "P1",
+      "effort": "small",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [
+        152
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-LIST-PROJECTS-1",
+      "slice_number": 154,
+      "group": "cockpit",
+      "title": "Add cockpit_list_projects MCP tool — compact project listing from registry",
+      "state": "validated",
+      "tier": "P1",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "DRAKE-PERSONA-PROJECTS-1",
+      "slice_number": 155,
+      "group": "cockpit",
+      "title": "Update Drake persona with project lifecycle NL patterns — create, list, validate from chat",
+      "state": "validated",
+      "tier": "P1",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [
+        148,
+        152,
+        153,
+        154
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "status": "done",
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-RUN-DETAIL-1",
+      "slice_number": 156,
+      "group": "cockpit",
+      "title": "Add cockpit_get_run_detail MCP tool — fetch full pipeline run record by ID",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "XS",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-SOURCES-1",
+      "slice_number": 157,
+      "group": "cockpit",
+      "title": "Add cockpit_list_sources MCP tool — list registered data sources from source registry",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "XS",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-FIND-SLICE-1",
+      "slice_number": 158,
+      "group": "cockpit",
+      "title": "Add cockpit_find_slice MCP tool — search slices by keyword across planning trees",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-AUTO-PROMOTE-1",
+      "slice_number": 159,
+      "group": "cockpit",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "title": "Auto-promote slices when deployment_status shows staging verified — eliminate manual tree-sync gaps",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-AUTO-PROMOTE-2",
+      "slice_number": 160,
+      "group": "cockpit",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "title": "Add _promote_deployment_verified_slices() to orchestrator REFINE — auto-close promotion gaps",
+      "effort": "small",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [
+        159
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [
+        {
+          "id": "docker_rebuild",
+          "state": "open",
+          "reason": "Requires rebuilding cockpit-runner-cron Docker image on VPS"
+        }
+      ],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      },
+      "last_known_pr": 616
+    },
+    {
+      "slice_id": "HUNT-PERSONA-MCP-1",
+      "slice_number": 161,
+      "group": "hunt",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "title": "Update Hunt persona with MCP tool awareness — 97 tools, zero guidance currently",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-SOURCE-CRUD-1",
+      "slice_number": 162,
+      "group": "cockpit",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "title": "Add source CRUD MCP tools",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "COCKPIT-MCP-DISPATCH-HISTORY-1",
+      "slice_number": 163,
+      "group": "cockpit",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "title": "Add dispatch_history MCP tool",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "WRITING-OPENCLAW-DEPLOY-1",
+      "slice_number": 164,
+      "group": "writing",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "title": "Deploy writing OpenClaw Telegram bot on VPS with container config",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      },
+      "last_known_pr": 618
+    },
+    {
+      "slice_id": "WRITING-PERSONA-1",
+      "slice_number": 165,
+      "group": "writing",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "title": "Writing bot persona — AGENTS.md + SOUL.md from 4 agent profiles",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      },
+      "last_known_pr": 619
+    },
+    {
+      "slice_id": "COCKPIT-BOT-BUILDER-1",
+      "slice_number": 166,
+      "group": "cockpit",
+      "state": "validated",
+      "status": "done",
+      "tier": "P1",
+      "title": "OpenClaw bot builder agent + model cost policy",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      },
+      "last_known_pr": "direct-push"
+    },
+    {
+      "slice_id": "REGISTRY-WORKSPACE-ALIGN",
+      "slice_number": 167,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P0",
+      "title": "Align registry, workspace, CI; disable nascent automation",
+      "effort": "medium",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "MODEL-SLUG-DEFAULTS",
+      "slice_number": 168,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P3",
+      "title": "Centralized model slug defaults + registry consistency validator",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "DOC-HEALTH-EXPAND",
+      "slice_number": 169,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P1",
+      "title": "Expand doc health manifest to product repos; backfill drake-governance docs",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "TREE-VALIDATOR-TESTS",
+      "slice_number": 170,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P3",
+      "title": "Pytest coverage for tree validator; trim AGENTS.md to <=180 lines",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "DOCS-BOOTSTRAP-ALIGN-RS",
+      "slice_number": 171,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P1",
+      "title": "Backfill stack_decisions.md, deployment.md, SECRETS.example.md for research-service",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "research-service",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "DOCS-BOOTSTRAP-ALIGN-JH",
+      "slice_number": 172,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P1",
+      "title": "Backfill stack_decisions.md, deployment.md, SECRETS.example.md for jobhunter",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "jobhunter",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "DOCS-BOOTSTRAP-ALIGN-OS",
+      "slice_number": 173,
+      "group": "technical",
+      "state": "ready",
+      "status": "ready",
+      "tier": "P1",
+      "title": "Backfill stack_decisions.md, deployment.md, SECRETS.example.md for one-star",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "one-star",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "JOBHUNTER-AIDEV-GATE",
+      "slice_number": 174,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P2",
+      "title": "Document ai-dev local validation gate for jobhunter",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "jobhunter",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "HEALTH-ENDPOINTS",
+      "slice_number": 175,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P2",
+      "title": "Add GET /health endpoint to jobhunter; verify research-service health",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "jobhunter",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "CI-REENABLE-ONE-STAR",
+      "slice_number": 176,
+      "group": "technical",
+      "state": "ready",
+      "status": "ready",
+      "tier": "P2",
+      "title": "Trigger CI manually for one-star, verify green, update ci_green=true",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "one-star",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "CI-REENABLE-SPENCERVARADI",
+      "slice_number": 177,
+      "group": "technical",
+      "state": "ready",
+      "status": "ready",
+      "tier": "P2",
+      "title": "Trigger CI manually for spencervaradi-site, verify green, update ci_green=true",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "spencervaradi-site",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "ONE-STAR-WORKER-ALIGN",
+      "slice_number": 178,
+      "group": "technical",
+      "state": "ready",
+      "status": "planned",
+      "tier": "P3",
+      "title": "Disable one-star worker (enabled=true but automation_enabled=false)",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "SPENCERVARADI-NAMESPACE-POPULATE",
+      "slice_number": 179,
+      "group": "technical",
+      "state": "ready",
+      "status": "ready",
+      "tier": "P3",
+      "title": "Migrate flat tree slices into spencervaradi-site namespace tree",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "spencervaradi-site",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "BOOTSTRAP-OPERATING-CONTRACT",
+      "slice_number": 180,
+      "group": "technical",
+      "state": "ready",
+      "status": "ready",
+      "tier": "P1",
+      "title": "Add AGENTS.md, .docs/, and registry entry for project-bootstrap",
+      "effort": "medium",
+      "risk": "medium",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "project-bootstrap",
+      "operator_gate": []
+    },
+    {
+      "slice_id": "CI-STANDARDIZE-1",
+      "slice_number": 181,
+      "group": "technical",
+      "state": "shaped",
+      "status": "planned",
+      "tier": "P2",
+      "title": "Define standard CI matrix across all repos and align per-repo gates",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "AUDIT-CLEANUP-RESEARCH",
+      "slice_number": 182,
+      "group": "technical",
+      "state": "shaped",
+      "status": "planned",
+      "tier": "P2",
+      "title": "Clean up research-service: delete cursor/* branches, resolve orphan slice IDs, prune stale branches",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": false,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "research-service",
+      "operator_gate": [
+        "Orphan informal slice IDs (23) require operator review before deletion or retroactive sync"
+      ],
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "research-service",
+        "integration_branch": "ai-dev",
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "AUDIT-CLEANUP-JOBHUNTER",
+      "slice_number": 183,
+      "group": "technical",
+      "state": "shaped",
+      "status": "planned",
+      "tier": "P2",
+      "title": "Clean up jobhunter: delete cursor/* branches, resolve orphan slice IDs, prune stale branches",
+      "effort": "medium",
+      "risk": "low",
+      "automation_eligible": false,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "jobhunter",
+      "operator_gate": [
+        "Orphan informal slice IDs (11) require operator review before deletion or retroactive sync"
+      ],
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "jobhunter",
+        "integration_branch": "ai-dev",
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "AGENTS-ALIGNMENT-RUNNER",
+      "slice_number": 184,
+      "group": "technical",
+      "state": "shaped",
+      "status": "planned",
+      "tier": "P2",
+      "title": "Harden audit_repo_alignment.py: fix substring false positives, add post-edit hook integration",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": true,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-DRAKE-REMEDIATE-1",
+      "slice_number": 185,
+      "group": "cockpit",
+      "state": "validated",
+      "status": "done",
+      "tier": "P0",
+      "title": "Remediate Drake Cockpit Bot — deploy cockpit-mcp HTTP server, Drake persona files, and OpenClaw container on VPS",
+      "effort": "medium",
+      "risk": "medium",
+      "automation_eligible": false,
+      "dependencies": [],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [
+        {
+          "id": "VPS-DEPLOY-185",
+          "state": "resolved",
+          "reason": "Requires SSH to VPS: systemd unit, venv, docker compose, Telegram bot token verification."
+        }
+      ],
+      "last_known_pr": "direct-push",
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": "ai-dev"
+      }
+    },
+    {
+      "slice_id": "COCKPIT-CONFIG-DRIFT-1",
+      "slice_number": 186,
+      "group": "cockpit",
+      "state": "shaped",
+      "status": "shaped",
+      "tier": "P1",
+      "title": "Detect and fix config drift across OpenClaw containers — audit openclaw.json5 consistency",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": false,
+      "dependencies": [
+        185
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": null,
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-HEALTH-VERIFY-1",
+      "slice_number": 187,
+      "group": "cockpit",
+      "state": "promoted",
+      "status": "done",
+      "tier": "P0",
+      "title": "Automated end-to-end health verification for all bots, MCP, Caddy, and API",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": false,
+      "dependencies": [
+        185,
+        186
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": null,
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": "dev",
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-VPS-BACKUP-1",
+      "slice_number": 188,
+      "group": "cockpit",
+      "state": "promoted",
+      "status": "done",
+      "tier": "P1",
+      "title": "Backup VPS configs (Caddy, systemd, docker-compose) to repo and keep in sync",
+      "effort": "small",
+      "risk": "low",
+      "automation_eligible": false,
+      "dependencies": [
+        185
+      ],
+      "blocks": [],
+      "implementation_repo_id": "drake-governance",
+      "operator_gate": [],
+      "last_known_pr": null,
+      "branch_posture": {
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "merged_branch": "ai-dev",
+        "promoted_branch": "dev",
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "SAIMON-S3-STORAGE-1",
+      "slice_number": 189,
+      "group": "technical",
+      "title": "Saimon S3 object storage integration for discovered files",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [
+        "s3_credentials"
+      ],
+      "checkpoint": null,
+      "automation_eligible": false,
+      "priority": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P2",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "saimon",
+        "integration_branch": "main",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "DRAKE-BATCH-DISPATCH-1",
+      "slice_number": 190,
+      "group": "technical",
+      "title": "Batch slice dispatch with subagent coordination",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [
+        "parallel_safety"
+      ],
+      "checkpoint": null,
+      "automation_eligible": false,
+      "priority": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P1",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "SAIMON-PROD-HEALTH-1",
+      "slice_number": 191,
+      "group": "technical",
+      "title": "Add Docker healthchecks to Saimon production services",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": null,
+      "automation_eligible": true,
+      "priority": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P2",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "saimon",
+        "integration_branch": "main",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "STAGING-DECOM-MCP",
+      "slice_number": 192,
+      "group": "infrastructure",
+      "title": "Route all staging consumers to production MCPs, stop staging MCP copies",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [
+        "wireguard_key_exchange",
+        "staging_openclaw_restart"
+      ],
+      "checkpoint": null,
+      "automation_eligible": false,
+      "priority": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "AUTH-COCKPIT-MCP",
+      "slice_number": 193,
+      "group": "infrastructure",
+      "title": "Add X-Cockpit-API-Key auth to Cockpit MCP server",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [],
+      "blocks": [
+        194,
+        195,
+        196,
+        197,
+        198,
+        199
+      ],
+      "operator_gates": [],
+      "checkpoint": null,
+      "automation_eligible": true,
+      "priority": null,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-UI-SCAFFOLD",
+      "slice_number": 194,
+      "group": "ui",
+      "title": "Modern Cockpit UI framework, routing, auth, and deploy to cockpit.example.com",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [
+        193
+      ],
+      "blocks": [
+        195,
+        196,
+        197,
+        198,
+        199
+      ],
+      "operator_gates": [
+        "framework_choice",
+        "dns_records"
+      ],
+      "checkpoint": null,
+      "automation_eligible": false,
+      "priority": null,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-UI-OPS-HOME",
+      "slice_number": 195,
+      "group": "ui",
+      "title": "Portfolio health dashboard and project detail views",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [
+        194
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": null,
+      "automation_eligible": true,
+      "priority": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P0",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-UI-SLICE-BOARD",
+      "slice_number": 196,
+      "group": "ui",
+      "title": "Interactive slice board with state lanes and dependency graph",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [
+        194
+      ],
+      "blocks": [
+        198
+      ],
+      "operator_gates": [],
+      "checkpoint": null,
+      "automation_eligible": true,
+      "priority": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P1",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-UI-MCP-OPS",
+      "slice_number": 197,
+      "group": "ui",
+      "title": "MCP operations views — health, profiles, drift detection",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [
+        194
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": null,
+      "automation_eligible": true,
+      "priority": null,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P1",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-UI-DISPATCH",
+      "slice_number": 198,
+      "group": "ui",
+      "title": "Slice dispatch controls with dry-run-first workflow",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [
+        194,
+        196
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "production_dispatch_gated_until_smoke_verified"
+      ],
+      "checkpoint": null,
+      "automation_eligible": false,
+      "priority": null,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-UI-SAIMON",
+      "slice_number": 199,
+      "group": "ui",
+      "title": "Integrate Saimon-Researcher tools (search, generate, verify, evaluate, export, explore) into Cockpit UI",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [
+        194
+      ],
+      "blocks": [],
+      "operator_gates": [
+        "saimon_cors_headers_required",
+        "saimon_llm_backend_degraded",
+        "saimon_verify_false_positive"
+      ],
+      "checkpoint": null,
+      "automation_eligible": false,
+      "priority": null,
+      "risk": "medium",
+      "effort": "large",
+      "tier": "P1",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "ai-dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "DRAKE-PREFLIGHT-REFINE",
+      "slice_number": 200,
+      "group": "technical",
+      "title": "Pre-dispatch refinement gate — automated drift detection before slice execution",
+      "state": "released",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": true,
+      "priority": 200,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P1",
+      "last_known_pr": 646,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "dev",
+        "feature_branch": "agent/preflight-refine",
+        "merged_branch": "dev",
+        "promoted_branch": "main",
+        "last_known_pr_base_branch": "dev"
+      }
+    },
+    {
+      "slice_id": "DRAKE-LAUNCH-SECURITY-1",
+      "slice_number": 201,
+      "group": "product",
+      "title": "Drake launch prep: security audit scrub + whitepaper generation",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [
+        "operator_approve_domain_scrub: 242 example.com references across 61 files — decide scope (full scrub vs. defer)"
+      ],
+      "checkpoint": "operator-gated",
+      "automation_eligible": false,
+      "priority": 201,
+      "risk": "low",
+      "effort": "medium",
+      "tier": "P1",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "dev",
+        "feature_branch": "dev",
+        "merged_branch": "dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "DRAKE-REPO-RENAME-1",
+      "slice_number": 202,
+      "group": "product",
+      "title": "Rename drake-governance repo to product-appropriate name",
+      "state": "validated",
+      "status": "done",
+      "dependencies": [],
+      "blocks": [],
+      "operator_gates": [
+        "operator_choose_name: pick final repo name (options: drake-control-plane, drake-governance, drake-planning, or operator's choice)"
+      ],
+      "checkpoint": "operator-gated",
+      "automation_eligible": false,
+      "priority": 202,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P1",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "dev",
+        "feature_branch": "dev",
+        "merged_branch": "dev",
+        "promoted_branch": null,
+        "last_known_pr_base_branch": null
+      }
+    },
+    {
+      "slice_id": "COCKPIT-API-OPENAPI-1",
+      "slice_number": 203,
+      "group": "technical",
+      "title": "Create OpenAPI 3.1 spec for cockpit API — typed contract for Cockpit UI codegen",
+      "state": "shaped",
+      "status": "planned",
+      "dependencies": [
+        204
+      ],
+      "blocks": [],
+      "operator_gates": [],
+      "checkpoint": "low-risk",
+      "automation_eligible": false,
+      "priority": 203,
+      "risk": "low",
+      "effort": "small",
+      "tier": "P0",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr": null,
+        "last_known_pr_base_branch": null
+      },
+      "notes": "Track B backend prep for UI lift-and-shift. Documentation-only — reads Go source + JS client to produce OpenAPI 3.1 spec at deploy/cline-operator/api/openapi.json. No code changes. Prompt: .github/prompts/cockpit-api-openapi.prompt.md. See .docs/planning/ui-lift-and-shift/. BLOCKED by DRAKE-EXTRACT-COCKPIT-API-1 (#204) — must run in cockpit-api repo, not drake-governance.",
+      "last_known_pr_number": null
+    },
+    {
+      "slice_id": "DRAKE-EXTRACT-COCKPIT-API-1",
+      "slice_number": 204,
+      "group": "technical",
+      "title": "Extract cockpit API from drake-governance into sv-copilot/cockpit-api",
+      "state": "shaped",
+      "status": "ready",
+      "dependencies": [
+        202
+      ],
+      "blocks": [
+        203
+      ],
+      "operator_gates": [
+        "cockpit_api_repo_name_approved"
+      ],
+      "checkpoint": "medium-risk",
+      "automation_eligible": false,
+      "priority": 204,
+      "risk": "medium",
+      "effort": "medium",
+      "tier": "P0",
+      "last_known_pr": null,
+      "branch_posture": {
+        "planning_repo_id": "drake-governance",
+        "implementation_repo_id": "drake-governance",
+        "integration_branch": "dev",
+        "feature_branch": null,
+        "merged_branch": null,
+        "promoted_branch": null,
+        "last_known_pr": null,
+        "last_known_pr_base_branch": null
+      },
+      "notes": "Extracts deploy/cline-operator/api/ (Go cockpit API, port 8080) into a new sv-copilot/cockpit-api repo. Drake (governance core: trees, orchestrator, runner, MCP, scripts) should function independently without the Cockpit UI. The cockpit API is a read-only consumer that aggregates tree data for the UI. This slice: (1) creates cockpit-api repo, (2) moves Go code, (3) moves COCKPIT-API-OPENAPI-1 (#203) to cockpit-api's tree, (4) updates VPS docker-compose + Caddy to reference new repo, (5) removes deploy/cline-operator/api/ from drake-governance. Depends on DRAKE-REPO-RENAME-1 (#202) completing first.",
+      "last_known_pr_number": null
+    }
+  ]
+}

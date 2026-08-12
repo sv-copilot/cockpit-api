@@ -1,0 +1,21 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.cockpit/
+*.egg-info/

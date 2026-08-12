@@ -1,0 +1,520 @@
+{
+  "schema_version": 3,
+  "updated_at": "2026-07-22",
+  "portfolio_automations": {
+    "hourly_improvement_id": "ca0e860f-c5e5-4c09-976d-cbcb13e8389f",
+    "hourly_improvement_schedule": "0 * * * *",
+    "hourly_improvement_prompt": ".docs/agent_prompts/hourly-portfolio-improvement-automation.md",
+    "hourly_improvement_pr_target_branch": "ai-dev",
+    "hourly_improvement_model_slug": "composer-2.5"
+  },
+  "orchestrator": {
+    "automation_id": "b5337289-7526-4979-8b61-d4e8cbb8bd12",
+    "schedule": "0 * * * *",
+    "global_fanout_limit": 3,
+    "same_repo_max_when_others_idle": 2,
+    "priority_order": "lower_number_first",
+    "model_slug": "composer-2.5"
+  },
+  "projects": [
+    {
+      "id": "drake-governance",
+      "name": "drake-governance",
+      "local_path": "/Users/simon/projects",
+      "github_slug": "sv-copilot/drake-governance",
+      "integration_branch": "ai-dev",
+      "priority": 1,
+      "bootstrap_maturity": "mature",
+      "readiness": {
+        "bootstrap_alignment": true,
+        "ci_green": true,
+        "smoke_slice_ready": true,
+        "worker_manual_test": true,
+        "sdk_dry_run": true,
+        "automation_safe": true
+      },
+      "automation_enabled": true,
+      "planning_root": ".docs/planning/projects/drake-governance",
+      "visibility_tier": "private",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "drake-governance-slice-pipeline",
+          "adapter_type": "cursor",
+          "role": "slice_pipeline",
+          "automation_id": "dbc2b006-57d6-43f5-b6be-c0a9d3db9efe",
+          "model_slug": "composer-2.5",
+          "enabled": true,
+          "primary": true,
+          "webhook_env": {
+            "url": "SIMON_PROJECTS_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "SIMON_PROJECTS_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_URL",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jobhunter",
+      "name": "jobhunter",
+      "local_path": "/Users/simon/jobhunter",
+      "github_slug": "sv-copilot/jobhunter",
+      "integration_branch": "ai-dev",
+      "priority": 5,
+      "bootstrap_maturity": "mature",
+      "readiness": {
+        "bootstrap_alignment": true,
+        "ci_green": true,
+        "smoke_slice_ready": true,
+        "worker_manual_test": true,
+        "sdk_dry_run": true,
+        "automation_safe": true
+      },
+      "automation_enabled": true,
+      "planning_root": ".docs/planning/projects/jobhunter",
+      "visibility_tier": "private",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "jobhunter-slice-pipeline",
+          "adapter_type": "cursor",
+          "role": "slice_pipeline",
+          "automation_id": "52b8daf3-d26c-4b74-ae4c-9c7e6b0c93b8",
+          "model_slug": "composer-2.5",
+          "enabled": false,
+          "primary": true,
+          "webhook_env": {
+            "url": "JOBHUNTER_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "JOBHUNTER_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_URL",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_TOKEN"
+          ]
+        },
+        {
+          "worker_id": "jobhunter-plan-next-slice",
+          "adapter_type": "cursor",
+          "role": "plan_next_slice",
+          "automation_id": "68f90f50-5038-4d0f-97c6-b7e261d3e7e2",
+          "model_slug": "composer-2.5",
+          "enabled": false,
+          "primary": false,
+          "credential_refs": [
+            "GH_TOKEN",
+            "SLICE_PIPELINE_WEBHOOK_URL",
+            "SLICE_PIPELINE_WEBHOOK_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "research-service",
+      "name": "research-service",
+      "local_path": "/Users/simon/research-service",
+      "github_slug": "sv-copilot/research-service",
+      "integration_branch": "ai-dev",
+      "priority": 2,
+      "bootstrap_maturity": "partial",
+      "readiness": {
+        "bootstrap_alignment": true,
+        "ci_green": true,
+        "smoke_slice_ready": true,
+        "worker_manual_test": true,
+        "sdk_dry_run": true,
+        "automation_safe": true
+      },
+      "automation_enabled": true,
+      "planning_root": ".docs/planning/projects/research-service",
+      "visibility_tier": "private",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "research-service-slice-pipeline",
+          "adapter_type": "cursor",
+          "role": "slice_pipeline",
+          "automation_id": "ea590b72-6fc9-41ac-ac5f-298b8c1d3714",
+          "model_slug": "composer-2.5",
+          "enabled": true,
+          "primary": true,
+          "webhook_env": {
+            "url": "RESEARCH_SERVICE_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "RESEARCH_SERVICE_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_URL",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "one-star",
+      "name": "one-star",
+      "local_path": "/Users/simon/one-star",
+      "github_slug": "sv-copilot/one-star",
+      "integration_branch": "ai-dev",
+      "priority": 3,
+      "bootstrap_maturity": "partial",
+      "readiness": {
+        "bootstrap_alignment": true,
+        "ci_green": true,
+        "smoke_slice_ready": false,
+        "worker_manual_test": false,
+        "sdk_dry_run": false,
+        "automation_safe": false
+      },
+      "automation_enabled": false,
+      "planning_root": ".docs/planning/projects/one-star",
+      "visibility_tier": "stealth",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "one-star-slice-pipeline",
+          "adapter_type": "cursor",
+          "role": "slice_pipeline",
+          "automation_id": "e5b895c7-70df-469c-a169-f69595c2bf3b",
+          "model_slug": "composer-2.5",
+          "enabled": true,
+          "primary": true,
+          "webhook_env": {
+            "url": "ONE_STAR_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "ONE_STAR_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_URL",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spencervaradi-site",
+      "name": "spencervaradi-site",
+      "local_path": "/Users/simon/spencervaradi-site",
+      "github_slug": "sv-copilot/spencervaradi-site",
+      "integration_branch": "ai-dev",
+      "priority": 4,
+      "bootstrap_maturity": "partial",
+      "readiness": {
+        "bootstrap_alignment": true,
+        "ci_green": true,
+        "smoke_slice_ready": true,
+        "worker_manual_test": false,
+        "sdk_dry_run": false,
+        "automation_safe": false
+      },
+      "automation_enabled": false,
+      "planning_root": ".docs/planning/projects/spencervaradi-site",
+      "visibility_tier": "oss-public",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "spencervaradi-site-slice-pipeline",
+          "adapter_type": "cursor",
+          "role": "slice_pipeline",
+          "automation_id": "f360321e-9236-400a-b3f5-1d0c492cbf6b",
+          "model_slug": "composer-2.5",
+          "enabled": true,
+          "primary": true,
+          "webhook_env": {
+            "url": "SPENCERVARADI_SITE_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "SPENCERVARADI_SITE_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_URL",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "drake",
+      "name": "Drake",
+      "local_path": "/Users/simon/drake",
+      "github_slug": "sv-copilot/drake",
+      "integration_branch": "ai-dev",
+      "priority": 6,
+      "bootstrap_maturity": "partial",
+      "readiness": {
+        "bootstrap_alignment": true,
+        "ci_green": true,
+        "smoke_slice_ready": true,
+        "worker_manual_test": true,
+        "sdk_dry_run": true,
+        "automation_safe": true
+      },
+      "automation_enabled": true,
+      "planning_root": ".docs/planning/projects/drake",
+      "visibility_tier": "stealth",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "drake-slice-pipeline",
+          "adapter_type": "cursor",
+          "role": "slice_pipeline",
+          "automation_id": null,
+          "model_slug": "composer-2.5",
+          "enabled": true,
+          "primary": true,
+          "webhook_env": {
+            "url": "DRAKE_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "DRAKE_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_URL",
+            "PORTFOLIO_PLAN_ORCHESTRATOR_WEBHOOK_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "studio",
+      "name": "Studio",
+      "local_path": "/Users/simon/studio",
+      "github_slug": "sv-copilot/studio",
+      "integration_branch": "ai-dev",
+      "priority": 7,
+      "bootstrap_maturity": "not_started",
+      "readiness": {
+        "bootstrap_alignment": false,
+        "ci_green": false,
+        "smoke_slice_ready": false,
+        "worker_manual_test": false,
+        "sdk_dry_run": false,
+        "automation_safe": false
+      },
+      "automation_enabled": false,
+      "planning_root": ".docs/planning/projects/studio",
+      "visibility_tier": "private",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "studio-self-hosted-runner",
+          "adapter_type": "cline",
+          "role": "slice_pipeline",
+          "automation_id": null,
+          "model_slug": "composer-2.5",
+          "enabled": false,
+          "primary": true,
+          "webhook_env": {
+            "url": "STUDIO_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "STUDIO_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writing",
+      "name": "Creative Writing",
+      "local_path": "/Users/simon/writing",
+      "github_slug": "sv-copilot/writing",
+      "integration_branch": "ai-dev",
+      "priority": 8,
+      "bootstrap_maturity": "not_started",
+      "readiness": {
+        "bootstrap_alignment": true,
+        "ci_green": false,
+        "smoke_slice_ready": true,
+        "worker_manual_test": false,
+        "sdk_dry_run": false,
+        "automation_safe": true
+      },
+      "automation_enabled": false,
+      "planning_root": ".docs/planning/projects/writing",
+      "visibility_tier": "private",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "writing-self-hosted-runner",
+          "adapter_type": "cline",
+          "role": "slice_pipeline",
+          "automation_id": null,
+          "model_slug": "composer-2.5",
+          "enabled": false,
+          "primary": true,
+          "webhook_env": {
+            "url": "WRITING_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "WRITING_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "saimon",
+      "name": "Saimon Platform",
+      "local_path": "/Users/simon/saimon",
+      "github_slug": "sv-copilot/saimon",
+      "integration_branch": "ai-dev",
+      "priority": 9,
+      "bootstrap_maturity": "not_started",
+      "readiness": {
+        "bootstrap_alignment": false,
+        "ci_green": false,
+        "smoke_slice_ready": false,
+        "worker_manual_test": false,
+        "sdk_dry_run": false,
+        "automation_safe": false
+      },
+      "automation_enabled": false,
+      "planning_root": ".docs/planning/projects/saimon",
+      "visibility_tier": "private",
+      "docs": {
+        "slice_backlog": ".docs/slice_backlog.md",
+        "dependency_tree": ".docs/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "saimon-self-hosted-runner",
+          "adapter_type": "cline",
+          "role": "slice_pipeline",
+          "automation_id": null,
+          "model_slug": "composer-2.5",
+          "enabled": false,
+          "primary": true,
+          "webhook_env": {
+            "url": "SAIMON_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "SAIMON_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sleepy-games",
+      "name": "Sleepy Games",
+      "local_path": "/Users/simon/sleepy-games",
+      "github_slug": "sv-copilot/sleepy-games",
+      "integration_branch": "ai-dev",
+      "priority": 10,
+      "bootstrap_maturity": "not_started",
+      "readiness": {
+        "bootstrap_alignment": false,
+        "ci_green": false,
+        "smoke_slice_ready": false,
+        "worker_manual_test": false,
+        "sdk_dry_run": false,
+        "automation_safe": false
+      },
+      "automation_enabled": false,
+      "planning_root": ".docs/planning/projects/sleepy-games",
+      "visibility_tier": "private",
+      "docs": {
+        "slice_backlog": ".docs/planning/projects/sleepy-games/slice_backlog.md",
+        "dependency_tree": ".docs/planning/projects/sleepy-games/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "sleepy-games-self-hosted-runner",
+          "adapter_type": "cline",
+          "role": "slice_pipeline",
+          "automation_id": null,
+          "model_slug": "composer-2.5",
+          "enabled": false,
+          "primary": true,
+          "webhook_env": {
+            "url": "SLEEPY_GAMES_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "SLEEPY_GAMES_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "local-ai",
+      "name": "Local AI",
+      "local_path": "/Users/simon/local-ai",
+      "github_slug": "sv-copilot/local-ai",
+      "integration_branch": "ai-dev",
+      "priority": 11,
+      "bootstrap_maturity": "not_started",
+      "readiness": {
+        "bootstrap_alignment": false,
+        "ci_green": false,
+        "smoke_slice_ready": false,
+        "worker_manual_test": false,
+        "sdk_dry_run": false,
+        "automation_safe": false
+      },
+      "automation_enabled": false,
+      "planning_root": ".docs/planning/projects/local-ai",
+      "visibility_tier": "private",
+      "docs": {
+        "slice_backlog": ".docs/planning/projects/local-ai/slice_backlog.md",
+        "dependency_tree": ".docs/planning/projects/local-ai/slice_dependency_tree.json",
+        "agent_automations": ".docs/agent_automations.md"
+      },
+      "workers": [
+        {
+          "worker_id": "local-ai-local-runner",
+          "adapter_type": "cline",
+          "role": "slice_pipeline",
+          "automation_id": null,
+          "model_slug": "composer-2.5",
+          "enabled": false,
+          "primary": true,
+          "webhook_env": {
+            "url": "LOCAL_AI_SLICE_PIPELINE_WEBHOOK_URL",
+            "token": "LOCAL_AI_SLICE_PIPELINE_WEBHOOK_TOKEN"
+          },
+          "credential_refs": [
+            "GH_TOKEN"
+          ]
+        }
+      ]
+    }
+  ]
+}

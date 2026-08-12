@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "profile_id": "drake-governance",
+  "description": "MCP environment profile for drake-governance — portfolio governance cockpit. Does not host or consume product MCP services directly.",
+  "default_tier": "dev",
+  "credential_policy": {
+    "forbidden_in_tiers": ["dev"],
+    "human_gate_tiers": ["production"]
+  },
+  "tiers": {
+    "dev": {
+      "description": "Local planning and governance work.",
+      "mcp_servers": {
+        "github": {
+          "enabled": true,
+          "transport": "stdio",
+          "command": "npx",
+          "args": ["-y", "@anthropic/mcp-server-github"]
+        },
+        "filesystem": {
+          "enabled": true,
+          "transport": "stdio",
+          "command": "npx",
+          "args": ["-y", "@anthropic/mcp-server-filesystem", "."]
+        },
+        "shell": {
+          "enabled": true,
+          "transport": "stdio",
+          "command": "sh",
+          "args": ["-c"]
+        }
+      }
+    },
+    "staging": {
+      "description": "Cockpit API at cockpit-staging-api.spencervaradi.com. Portfolio docs only — no runtime MCP consumption.",
+      "mcp_servers": {
+        "github": {
+          "enabled": true,
+          "transport": "stdio",
+          "command": "npx",
+          "args": ["-y", "@anthropic/mcp-server-github"],
+          "credential_refs": ["GH_TOKEN"]
+        }
+      }
+    },
+    "production": {
+      "description": "Production tier — reserved.",
+      "mcp_servers": {
+        "github": {
+          "enabled": false,
+          "transport": "stdio",
+          "command": "npx",
+          "args": ["-y", "@anthropic/mcp-server-github"],
+          "credential_refs": ["GH_TOKEN"],
+          "notes": "Disabled by default in production."
+        }
+      }
+    }
+  }
+}

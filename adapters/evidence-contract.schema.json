@@ -1,0 +1,200 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/sv-copilot/drake-governance/adapters/evidence-contract.schema.json",
+  "title": "Evidence Contract",
+  "description": "Structured output from worker adapters and automation runners. Supports full adapter evidence (task packets) and pipeline run summaries posted to cockpit-api /runs.",
+  "oneOf": [
+    { "$ref": "#/definitions/adapterEvidence" },
+    { "$ref": "#/definitions/pipelineRunEvidence" }
+  ],
+  "definitions": {
+    "adapterEvidence": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "status",
+        "summary",
+        "evidence_items",
+        "adapter_info",
+        "completed_at"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "description": "The id of the Task Packet this evidence responds to. Must match the original task's id.",
+          "examples": ["run-20260617-abc123/1-a4f8"]
+        },
+        "status": {
+          "type": "string",
+          "description": "Overall outcome of the task.",
+          "enum": [
+            "success",
+            "failure",
+            "partial",
+            "blocked",
+            "skipped",
+            "cancelled"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "description": "Human-readable summary of what was accomplished, why it failed, or what blocked progress."
+        },
+        "evidence_items": {
+          "type": "array",
+          "description": "List of concrete artifacts produced or modified by this task.",
+          "items": {
+            "type": "object",
+            "required": ["path", "change_type", "description"],
+            "properties": {
+              "path": { "type": "string" },
+              "change_type": {
+                "type": "string",
+                "enum": ["added", "modified", "deleted", "renamed", "artifact"]
+              },
+              "description": { "type": "string" },
+              "checksum": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "size_bytes": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "validation_results": {
+          "$ref": "validation-results.schema.json",
+          "description": "Results of validation commands run by the worker."
+        },
+        "adapter_info": {
+          "type": "object",
+          "required": ["adapter_type", "adapter_version"],
+          "properties": {
+            "adapter_type": { "type": "string" },
+            "adapter_version": { "type": "string" },
+            "runtime": { "type": "string" }
+          }
+        },
+        "pr_info": {
+          "type": "object",
+          "properties": {
+            "pr_url": { "type": "string", "format": "uri" },
+            "pr_number": { "type": "integer", "minimum": 1 },
+            "branch": { "type": "string" },
+            "base_branch": { "type": "string" },
+            "state": {
+              "type": "string",
+              "enum": ["open", "merged", "closed", "draft"]
+            }
+          }
+        },
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["timestamp", "level", "message"],
+            "properties": {
+              "timestamp": { "type": "string", "format": "date-time" },
+              "level": {
+                "type": "string",
+                "enum": ["debug", "info", "warn", "error"]
+              },
+              "message": { "type": "string" },
+              "context": { "type": "object", "additionalProperties": true }
+            }
+          }
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the worker finished and produced this evidence."
+        },
+        "timestamps": {
+          "type": "object",
+          "properties": {
+            "started_at": { "type": "string", "format": "date-time" },
+            "completed_at": { "type": "string", "format": "date-time" },
+            "duration_ms": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["completed_at"]
+        }
+      }
+    },
+    "pipelineRunEvidence": {
+      "type": "object",
+      "description": "Compact run summary posted by cloud pipeline workers and local runners to cockpit-api /runs.",
+      "required": ["run_id", "slice_id", "status", "started_at", "completed_at"],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "description": "Unique run identifier used as the persistence key."
+        },
+        "slice_id": {
+          "type": "string",
+          "description": "Slice identifier executed in this run."
+        },
+        "repo_id": {
+          "type": "string",
+          "description": "Planning or implementation repo id for filtering run history."
+        },
+        "status": {
+          "type": "string",
+          "description": "Overall run outcome.",
+          "enum": ["complete", "failed", "aborted"]
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the run started."
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the run finished."
+        },
+        "exit_code": {
+          "type": "integer",
+          "description": "Process exit code from the worker."
+        },
+        "pr_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Opened or babysat PR URL when applicable."
+        },
+        "worker_type": {
+          "type": "string",
+          "description": "Worker source classification.",
+          "enum": ["cursor_cloud", "cline_local", "cline_cloud", "cursor_sdk"]
+        },
+        "worker_id": {
+          "type": "string",
+          "description": "Stable worker identifier for health monitoring."
+        },
+        "model": {
+          "type": "string",
+          "description": "Model slug used for the run (not an API key)."
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Cloud session or SDK run identifier."
+        },
+        "webhook_trigger": {
+          "type": "boolean",
+          "description": "True when the run was started via webhook dispatch."
+        },
+        "files_changed": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "validation_results": {
+          "type": "object",
+          "description": "Optional validation summary from the run."
+        },
+        "errors": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
