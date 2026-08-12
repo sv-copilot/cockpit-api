@@ -1,0 +1,1295 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Cockpit API",
+    "version": "1.0.0",
+    "description": "Read-model projections over canonical planning data for the Autonomous Development Governance system. Reads the project registry, namespace planning trees, and operator questions from a git-synced drake-governance checkout. Dispatch operations enqueue runner jobs; the API never writes to Git directly."
+  },
+  "servers": [
+    {
+      "url": "https://cockpit-api.spencervaradi.com"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cockpit/progress": {
+      "get": {
+        "summary": "Portfolio progress summary",
+        "description": "Aggregated progress across all registered projects: promotion gaps, per-project rollups, ready-to-trigger slices, and recent runs.",
+        "operationId": "cockpitProgress",
+        "responses": {
+          "200": {
+            "description": "Portfolio progress summary",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CockpitProgressSummary" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cockpit/projects/slices": {
+      "get": {
+        "summary": "List slices for a project",
+        "description": "List all slices in a project's namespace tree. Accepts both short repo ids and GitHub slugs.",
+        "operationId": "cockpitProjectSlices",
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Slice list for the project",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectSlicesResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No namespace tree for the repo"
+          }
+        }
+      }
+    },
+    "/cockpit/projects/{repo_id}/slices": {
+      "get": {
+        "summary": "List slices for a project (legacy path)",
+        "description": "Legacy route — prefer GET /cockpit/projects/slices?repo_id=...",
+        "operationId": "cockpitProjectSlicesLegacy",
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Slice list for the project",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectSlicesResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No namespace tree for the repo"
+          }
+        }
+      }
+    },
+    "/cockpit/slices/{slice_id}": {
+      "get": {
+        "summary": "Slice detail",
+        "operationId": "cockpitSliceDetail",
+        "parameters": [
+          {
+            "name": "slice_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "repo_id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Slice entry from the namespace tree",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SliceDetail" }
+              }
+            }
+          },
+          "404": {
+            "description": "Slice not found in the given repo"
+          }
+        }
+      }
+    },
+    "/api/v1/sources": {
+      "get": {
+        "summary": "List source registry records",
+        "operationId": "listSources",
+        "responses": {
+          "200": {
+            "description": "Source records",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SourceListResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a source registry record",
+        "operationId": "createSource",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SourceCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created source record",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SourceRecord" }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid source URL"
+          }
+        }
+      }
+    },
+    "/api/v1/sources/{source_id}": {
+      "delete": {
+        "summary": "Delete a source registry record",
+        "operationId": "deleteSource",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted confirmation",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DeleteSourceResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Source not found"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a source registry record",
+        "operationId": "patchSource",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SourcePatch" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated source record",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SourceRecord" }
+              }
+            }
+          },
+          "404": {
+            "description": "Source not found"
+          },
+          "422": {
+            "description": "Invalid source URL"
+          }
+        }
+      }
+    },
+    "/dispatch/dry-run": {
+      "post": {
+        "summary": "Preview a slice dispatch",
+        "description": "Build a TriggerPreview without executing. Runs the preflight refinement gate (#200) and returns gates, warnings, and the dry-run task packet.",
+        "operationId": "dispatchDryRun",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DispatchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dispatch preview",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TriggerPreview" }
+              }
+            }
+          },
+          "404": {
+            "description": "Slice not found"
+          }
+        }
+      }
+    },
+    "/dispatch/confirm": {
+      "post": {
+        "summary": "Confirm and enqueue a slice dispatch",
+        "description": "Enqueues a runner job. Requires the primary worker webhook token to be resolvable from env or the credential broker.",
+        "operationId": "dispatchConfirm",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DispatchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job enqueued",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DispatchResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Unresolved operator gates or missing webhook token"
+          },
+          "404": {
+            "description": "Slice not found"
+          }
+        }
+      }
+    },
+    "/runs": {
+      "get": {
+        "summary": "List run records",
+        "operationId": "listRuns",
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run records, newest first",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RunsListResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit run evidence",
+        "description": "Ingest Evidence Contract JSON from cloud pipeline workers and local runners. Rejects payloads containing secret values.",
+        "operationId": "receiveRun",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RunRecord" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Run accepted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RunAcceptedResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid evidence payload, unsafe run_id, or secret values present"
+          }
+        }
+      }
+    },
+    "/runs/{run_id}": {
+      "get": {
+        "summary": "Get a run record",
+        "operationId": "getRun",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Full run record",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RunRecord" }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found"
+          },
+          "422": {
+            "description": "run_id contains unsafe characters"
+          }
+        }
+      }
+    },
+    "/admin/sync": {
+      "get": {
+        "summary": "Trigger a planning data git sync",
+        "description": "Pull latest planning data from GitHub. Called by a cron job.",
+        "operationId": "adminSync",
+        "responses": {
+          "200": {
+            "description": "Sync result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AdminSyncResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/credentials/inventory": {
+      "get": {
+        "summary": "Portfolio credential inventory",
+        "operationId": "credentialsInventory",
+        "tags": ["credentials"],
+        "responses": {
+          "200": {
+            "description": "Portfolio-wide credential inventory (no secret values)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PortfolioCredentialInventory" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/credentials/inventory/repos/{repo_id}": {
+      "get": {
+        "summary": "Repo credential inventory",
+        "operationId": "credentialsInventoryRepo",
+        "tags": ["credentials"],
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Repo-level credential inventory (no secret values)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RepoCredentialInventory" }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown repo_id"
+          }
+        }
+      }
+    },
+    "/credentials/{name}": {
+      "post": {
+        "summary": "Upsert a credential",
+        "description": "Write-only broker upsert. Requires credentials write access.",
+        "operationId": "upsertCredential",
+        "tags": ["credentials"],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CredentialUpsertRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Credential upserted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CredentialUpsertResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid credential value"
+          },
+          "503": {
+            "description": "Credential broker unavailable"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Revoke a credential",
+        "description": "Revokes a credential. Requires credentials write access and the `x-operator-confirm: revoke` header.",
+        "operationId": "revokeCredential",
+        "tags": ["credentials"],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "default": "staging" }
+          },
+          {
+            "name": "x-operator-confirm",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Must equal 'revoke' to confirm credential deletion."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credential revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CredentialRevokeResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing x-operator-confirm header"
+          },
+          "404": {
+            "description": "Credential not found for the environment"
+          },
+          "503": {
+            "description": "Credential broker unavailable"
+          }
+        }
+      }
+    },
+    "/credentials/{name}/test": {
+      "post": {
+        "summary": "Test a credential",
+        "description": "Read-only credential test. Returns pass/fail status only, never secret values.",
+        "operationId": "testCredential",
+        "tags": ["credentials"],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "default": "staging" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Credential test result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CredentialTestResponse" }
+              }
+            }
+          },
+          "503": {
+            "description": "Credential broker unavailable"
+          }
+        }
+      }
+    },
+    "/webhook/github": {
+      "post": {
+        "summary": "Receive GitHub webhook events",
+        "description": "Validates the webhook signature and triggers an orchestrator cycle when a PR is merged or pushed to ai-dev.",
+        "operationId": "githubWebhook",
+        "tags": ["webhooks"],
+        "parameters": [
+          {
+            "name": "X-Hub-Signature-256",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "X-GitHub-Event",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GitHubWebhookPayload" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook handled",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WebhookResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON payload"
+          },
+          "401": {
+            "description": "Invalid webhook signature"
+          }
+        }
+      }
+    },
+    "/webhook/trigger": {
+      "post": {
+        "summary": "Manually trigger the orchestrator",
+        "description": "Runs one orchestrator cycle. Useful for daily cron.",
+        "operationId": "manualTrigger",
+        "tags": ["webhooks"],
+        "responses": {
+          "200": {
+            "description": "Orchestrator triggered",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WebhookResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crewai/dispatch": {
+      "post": {
+        "summary": "Dispatch a CrewAI crew",
+        "description": "Runs a CrewAI crew (refinement, audit, or sync) for a slice in dry-run mode and records evidence.",
+        "operationId": "dispatchCrewai",
+        "tags": ["crewai"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CrewaiDispatchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Crew dispatched and evidence recorded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CrewaiDispatchResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid crew_type"
+          },
+          "404": {
+            "description": "Tree or slice not found"
+          }
+        }
+      }
+    },
+    "/crewai/runs": {
+      "get": {
+        "summary": "List CrewAI run summaries",
+        "operationId": "listCrewaiRuns",
+        "tags": ["crewai"],
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CrewAI run summaries",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CrewaiRunsListResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/crewai/runs/{run_id}": {
+      "get": {
+        "summary": "Get a CrewAI run record",
+        "operationId": "getCrewaiRun",
+        "tags": ["crewai"],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Full CrewAI run record",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RunRecord" }
+              }
+            }
+          },
+          "404": {
+            "description": "CrewAI run not found"
+          },
+          "422": {
+            "description": "run_id contains unsafe characters"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string" },
+          "planning_path": { "type": "string" },
+          "sync_age_seconds": { "type": "integer" }
+        }
+      },
+      "PromotionGap": {
+        "type": "object",
+        "required": ["slice_id", "slice_number", "title", "implementation_repo_id"],
+        "properties": {
+          "slice_id": { "type": "string" },
+          "slice_number": { "type": "integer" },
+          "title": { "type": "string" },
+          "implementation_repo_id": { "type": "string" },
+          "merged_branch": { "type": ["string", "null"] },
+          "promoted_branch": { "type": ["string", "null"] },
+          "last_known_pr_url": { "type": ["string", "null"] }
+        }
+      },
+      "ProjectRollup": {
+        "type": "object",
+        "required": ["repo_id", "github_slug", "slice_counts_by_state", "branch_posture_summary", "promotion_gap_count", "open_gate_count"],
+        "properties": {
+          "repo_id": { "type": "string" },
+          "github_slug": { "type": "string" },
+          "slice_counts_by_state": {
+            "type": "object",
+            "additionalProperties": { "type": "integer" }
+          },
+          "branch_posture_summary": {
+            "type": "object",
+            "additionalProperties": { "type": "integer" }
+          },
+          "promotion_gap_count": { "type": "integer" },
+          "open_gate_count": { "type": "integer" },
+          "last_run_at": { "type": ["string", "null"] },
+          "last_pr_url": { "type": ["string", "null"] }
+        }
+      },
+      "RunSummary": {
+        "type": "object",
+        "required": ["run_id", "slice_id", "status"],
+        "properties": {
+          "run_id": { "type": "string" },
+          "slice_id": { "type": "string" },
+          "status": { "type": "string" },
+          "started_at": { "type": ["string", "null"] },
+          "completed_at": { "type": ["string", "null"] },
+          "pr_url": { "type": ["string", "null"] },
+          "exit_code": { "type": ["integer", "null"] }
+        }
+      },
+      "PortfolioSummary": {
+        "type": "object",
+        "properties": {
+          "repo_count": { "type": "integer" },
+          "slice_counts_by_state": {
+            "type": "object",
+            "additionalProperties": { "type": "integer" }
+          },
+          "slice_counts_by_tier": {
+            "type": "object",
+            "additionalProperties": { "type": "integer" }
+          },
+          "automation_eligible_ready_count": { "type": "integer" },
+          "open_question_count": { "type": "integer" },
+          "blocked_by_questions_count": { "type": "integer" }
+        }
+      },
+      "CockpitProgressSummary": {
+        "type": "object",
+        "required": ["generated_at", "sync_age_seconds", "portfolio", "promotion_gaps", "projects", "ready_to_trigger_slice_ids"],
+        "properties": {
+          "generated_at": { "type": "string" },
+          "sync_age_seconds": { "type": "integer" },
+          "portfolio": { "$ref": "#/components/schemas/PortfolioSummary" },
+          "promotion_gaps": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PromotionGap" }
+          },
+          "projects": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectRollup" }
+          },
+          "ready_to_trigger_slice_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "recent_runs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RunSummary" }
+          }
+        }
+      },
+      "WorkerRouting": {
+        "type": "object",
+        "properties": {
+          "adapter_type": { "type": "string" },
+          "worker_id": { "type": "string" },
+          "webhook_env_name": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "DryRunTaskPacket": {
+        "type": "object",
+        "properties": {
+          "task_type": { "type": "string" },
+          "adapter_type": { "type": "string" },
+          "slice_id": { "type": "string" },
+          "planning_repo_id": { "type": "string" },
+          "implementation_repo_id": { "type": "string" },
+          "slice_detail_path": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "PreflightRefinement": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["pass", "warn", "block"] },
+          "checks": { "type": "object", "additionalProperties": true },
+          "recommendation": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "TriggerPreview": {
+        "type": "object",
+        "required": ["slice_id", "slice_number", "title", "implementation_repo_id", "implementation_github_slug", "integration_branch", "dependency_tree_path", "worker_routing", "dry_run_task_packet", "estimated_effort", "risk", "gates", "warnings"],
+        "properties": {
+          "slice_id": { "type": "string" },
+          "slice_number": { "type": "integer" },
+          "title": { "type": "string" },
+          "implementation_repo_id": { "type": "string" },
+          "implementation_github_slug": { "type": "string" },
+          "integration_branch": { "type": "string" },
+          "dependency_tree_path": { "type": "string" },
+          "worker_routing": { "$ref": "#/components/schemas/WorkerRouting" },
+          "dry_run_task_packet": { "$ref": "#/components/schemas/DryRunTaskPacket" },
+          "estimated_effort": { "type": "string" },
+          "risk": { "type": "string" },
+          "gates": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "warnings": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "preflight_refinement": {
+            "oneOf": [
+              { "$ref": "#/components/schemas/PreflightRefinement" },
+              { "type": "null" }
+            ]
+          }
+        }
+      },
+      "DispatchRequest": {
+        "type": "object",
+        "required": ["repo_id", "slice_id"],
+        "properties": {
+          "repo_id": { "type": "string" },
+          "slice_id": { "type": "string" }
+        }
+      },
+      "DispatchResponse": {
+        "type": "object",
+        "required": ["status", "job_id", "slice_id"],
+        "properties": {
+          "status": { "type": "string" },
+          "job_id": { "type": "string" },
+          "slice_id": { "type": "string" }
+        }
+      },
+      "SourceType": {
+        "type": "string",
+        "enum": ["career_page", "job_board", "rss", "custom"]
+      },
+      "SourceCreate": {
+        "type": "object",
+        "required": ["url", "label"],
+        "properties": {
+          "url": { "type": "string", "format": "uri" },
+          "label": { "type": "string" },
+          "source_type": {
+            "$ref": "#/components/schemas/SourceType",
+            "default": "career_page"
+          },
+          "enabled": { "type": "boolean", "default": true },
+          "interval_minutes": { "type": "integer", "default": 360 },
+          "notes": { "type": "string", "default": "" }
+        }
+      },
+      "SourcePatch": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": ["boolean", "null"] },
+          "label": { "type": ["string", "null"] },
+          "url": { "type": ["string", "null"], "format": "uri" },
+          "interval_minutes": { "type": ["integer", "null"] },
+          "last_polled_at": { "type": ["string", "null"] },
+          "last_status": { "type": ["string", "null"] }
+        }
+      },
+      "SourceRecord": {
+        "allOf": [
+          { "$ref": "#/components/schemas/SourceCreate" },
+          {
+            "type": "object",
+            "required": ["id", "created_at"],
+            "properties": {
+              "id": { "type": "string" },
+              "created_at": { "type": "string" },
+              "last_polled_at": { "type": ["string", "null"] },
+              "last_status": { "type": ["string", "null"] }
+            }
+          }
+        ]
+      },
+      "SourceListResponse": {
+        "type": "object",
+        "required": ["sources"],
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SourceRecord" }
+          }
+        }
+      },
+      "DeleteSourceResponse": {
+        "type": "object",
+        "required": ["status", "id"],
+        "properties": {
+          "status": { "type": "string" },
+          "id": { "type": "string" }
+        }
+      },
+      "BranchPosture": {
+        "type": "object",
+        "properties": {
+          "planning_repo_id": { "type": ["string", "null"] },
+          "implementation_repo_id": { "type": ["string", "null"] },
+          "integration_branch": { "type": ["string", "null"] },
+          "feature_branch": { "type": ["string", "null"] },
+          "merged_branch": { "type": ["string", "null"] },
+          "promoted_branch": { "type": ["string", "null"] },
+          "last_known_pr": { "type": ["integer", "null"] },
+          "last_known_pr_base_branch": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      },
+      "SliceDetail": {
+        "type": "object",
+        "required": ["slice_id", "slice_number"],
+        "properties": {
+          "slice_id": { "type": "string" },
+          "slice_number": { "type": "integer" },
+          "group": { "type": "string" },
+          "title": { "type": "string" },
+          "state": { "type": "string" },
+          "status": { "type": "string" },
+          "dependencies": {
+            "type": "array",
+            "items": { "type": "integer" }
+          },
+          "blocks": {
+            "type": "array",
+            "items": { "type": "integer" }
+          },
+          "operator_gates": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "checkpoint": { "type": "string" },
+          "automation_eligible": { "type": "boolean" },
+          "priority": { "type": "integer" },
+          "risk": { "type": "string" },
+          "effort": { "type": "string" },
+          "tier": { "type": "string" },
+          "last_known_pr": { "type": ["integer", "null"] },
+          "branch_posture": { "$ref": "#/components/schemas/BranchPosture" }
+        },
+        "additionalProperties": true
+      },
+      "ProjectSlicesResponse": {
+        "type": "object",
+        "required": ["repo_id", "slices"],
+        "properties": {
+          "repo_id": { "type": "string" },
+          "slices": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SliceDetail" }
+          }
+        }
+      },
+      "RunRecord": {
+        "type": "object",
+        "description": "Evidence contract record (adapter evidence or pipeline run evidence).",
+        "properties": {
+          "run_id": { "type": "string" },
+          "task_id": { "type": "string" },
+          "slice_id": { "type": "string" },
+          "repo_id": { "type": "string" },
+          "status": { "type": "string" },
+          "summary": { "type": "string" },
+          "started_at": { "type": ["string", "null"] },
+          "completed_at": { "type": ["string", "null"] },
+          "exit_code": { "type": ["integer", "null"] },
+          "pr_url": { "type": ["string", "null"] },
+          "worker_type": { "type": "string" },
+          "worker_id": { "type": "string" },
+          "model": { "type": "string" },
+          "session_id": { "type": "string" },
+          "webhook_trigger": { "type": "boolean" },
+          "files_changed": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "evidence_items": {
+            "type": "array",
+            "items": { "type": "object", "additionalProperties": true }
+          },
+          "validation_results": { "type": "object", "additionalProperties": true },
+          "adapter_info": { "type": "object", "additionalProperties": true },
+          "pr_info": { "type": "object", "additionalProperties": true },
+          "timestamps": { "type": "object", "additionalProperties": true },
+          "logs": {
+            "type": "array",
+            "items": { "type": "object", "additionalProperties": true }
+          },
+          "errors": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      },
+      "RunsListResponse": {
+        "type": "object",
+        "required": ["runs"],
+        "properties": {
+          "runs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RunRecord" }
+          }
+        }
+      },
+      "RunAcceptedResponse": {
+        "type": "object",
+        "required": ["status", "run_id"],
+        "properties": {
+          "status": { "type": "string" },
+          "run_id": { "type": "string" }
+        }
+      },
+      "AdminSyncResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "type": "string" },
+          "commit": { "type": ["string", "null"] },
+          "sync_age_seconds": { "type": ["integer", "null"] },
+          "error": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      },
+      "RefStatus": {
+        "type": "string",
+        "enum": ["missing", "configured", "stale", "test_failed", "unknown"]
+      },
+      "CredentialRefRecord": {
+        "type": "object",
+        "required": ["name", "status", "environment"],
+        "properties": {
+          "name": { "type": "string" },
+          "status": { "$ref": "#/components/schemas/RefStatus" },
+          "environment": { "type": "string" },
+          "sources": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "WorkerCredentialView": {
+        "type": "object",
+        "required": ["worker_id", "role", "adapter_type", "enabled"],
+        "properties": {
+          "worker_id": { "type": "string" },
+          "role": { "type": "string" },
+          "adapter_type": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "credential_refs": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "webhook_env": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      },
+      "RepoCredentialInventory": {
+        "type": "object",
+        "required": ["repo_id"],
+        "properties": {
+          "repo_id": { "type": "string" },
+          "github_slug": { "type": ["string", "null"] },
+          "automation_enabled": { "type": "boolean" },
+          "missing_count": { "type": "integer" },
+          "configured_count": { "type": "integer" },
+          "stale_count": { "type": "integer" },
+          "test_failed_count": { "type": "integer" },
+          "unknown_count": { "type": "integer" },
+          "workers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkerCredentialView" }
+          },
+          "required_refs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CredentialRefRecord" }
+          },
+          "mcp_credential_refs": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "EnvironmentSummary": {
+        "type": "object",
+        "properties": {
+          "missing_count": { "type": "integer" },
+          "configured_count": { "type": "integer" },
+          "stale_count": { "type": "integer" },
+          "test_failed_count": { "type": "integer" },
+          "unknown_count": { "type": "integer" }
+        }
+      },
+      "PortfolioCredentialSummary": {
+        "type": "object",
+        "properties": {
+          "total_refs": { "type": "integer" },
+          "missing_count": { "type": "integer" },
+          "configured_count": { "type": "integer" },
+          "stale_count": { "type": "integer" },
+          "test_failed_count": { "type": "integer" },
+          "unknown_count": { "type": "integer" },
+          "by_environment": {
+            "type": "object",
+            "additionalProperties": { "$ref": "#/components/schemas/EnvironmentSummary" }
+          }
+        }
+      },
+      "PortfolioCredentialInventory": {
+        "type": "object",
+        "required": ["generated_at", "environment", "summary"],
+        "properties": {
+          "generated_at": { "type": "string" },
+          "environment": { "type": "string" },
+          "summary": { "$ref": "#/components/schemas/PortfolioCredentialSummary" },
+          "repos": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RepoCredentialInventory" }
+          },
+          "portfolio_catalog_refs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CredentialRefRecord" }
+          },
+          "hetzner_catalog_refs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CredentialRefRecord" }
+          }
+        }
+      },
+      "CredentialUpsertRequest": {
+        "type": "object",
+        "required": ["value"],
+        "properties": {
+          "value": { "type": "string", "minLength": 1 },
+          "environment": { "type": "string", "default": "staging" },
+          "scope_repo_id": { "type": ["string", "null"] }
+        }
+      },
+      "CredentialUpsertResponse": {
+        "type": "object",
+        "required": ["name", "environment", "fingerprint", "updated_at"],
+        "properties": {
+          "name": { "type": "string" },
+          "environment": { "type": "string" },
+          "fingerprint": { "type": "string" },
+          "updated_at": { "type": "string" },
+          "scope_repo_id": { "type": ["string", "null"] }
+        }
+      },
+      "CredentialTestResponse": {
+        "type": "object",
+        "required": ["name", "status"],
+        "properties": {
+          "name": { "type": "string" },
+          "status": { "type": "string" },
+          "error_class": { "type": ["string", "null"] }
+        }
+      },
+      "CredentialRevokeResponse": {
+        "type": "object",
+        "required": ["name", "environment", "revoked"],
+        "properties": {
+          "name": { "type": "string" },
+          "environment": { "type": "string" },
+          "revoked": { "type": "boolean" }
+        }
+      },
+      "CrewaiDispatchRequest": {
+        "type": "object",
+        "required": ["crew_type", "slice_id", "repo_id"],
+        "properties": {
+          "crew_type": { "type": "string", "enum": ["refinement", "audit", "sync"] },
+          "slice_id": { "type": "string" },
+          "repo_id": { "type": "string" }
+        }
+      },
+      "CrewaiDispatchResponse": {
+        "type": "object",
+        "required": ["run_id", "status", "crew_type", "slice_id"],
+        "properties": {
+          "run_id": { "type": "string" },
+          "status": { "type": "string" },
+          "crew_type": { "type": "string" },
+          "slice_id": { "type": "string" }
+        }
+      },
+      "CrewaiRunsListResponse": {
+        "type": "object",
+        "required": ["runs"],
+        "properties": {
+          "runs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RunSummary" }
+          }
+        }
+      },
+      "GitHubWebhookPayload": {
+        "type": "object",
+        "properties": {
+          "action": { "type": "string" },
+          "ref": { "type": "string" },
+          "pull_request": { "type": "object", "additionalProperties": true },
+          "head_commit": { "type": "object", "additionalProperties": true }
+        },
+        "additionalProperties": true
+      },
+      "WebhookResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "event": { "type": "string" },
+          "action": { "type": "string" },
+          "trigger": { "type": "string" },
+          "message": { "type": "string" },
+          "reason": { "type": "string" },
+          "orchestrator": { "type": "object", "additionalProperties": true }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}
