@@ -122,6 +122,47 @@ def _tree(repo_id: str) -> dict:
     return _load_json(tree_path)
 
 
+def _registry_project(repo_id: str) -> dict | None:
+    """Return the registry entry for a repo_id (normalized), or None."""
+    repo_id = _normalize_repo_id(repo_id)
+    return next(
+        (item for item in _registry().get("projects", []) if item.get("id") == repo_id),
+        None,
+    )
+
+
+def _resolve_integration_branch(project: dict | None) -> str:
+    """Resolve a project's integration branch from its registry entry."""
+    return (project or {}).get("integration_branch") or "dev"
+
+
+def _resolve_worker_routing(project: dict | None) -> dict:
+    """Resolve dispatch worker routing from the project's primary worker.
+
+    Falls back to the legacy hardcoded values when no registry entry/worker
+    exists, so the dry-run preview never crashes on an unregistered repo.
+    """
+    worker: dict | None = None
+    if project is not None:
+        try:
+            import sys
+
+            scripts_root = Path(__file__).resolve().parent / "scripts"
+            if str(scripts_root) not in sys.path:
+                sys.path.insert(0, str(scripts_root))
+            from projects_registry import get_primary_worker  # noqa: E402
+
+            worker = get_primary_worker(project)
+        except Exception:
+            worker = None
+    webhook_env = (worker or {}).get("webhook_env") or {}
+    return {
+        "adapter_type": (worker or {}).get("adapter_type") or "cline",
+        "worker_id": (worker or {}).get("worker_id") or "self-hosted-cline-runner",
+        "webhook_env_name": webhook_env.get("url") or "COCKPIT_API_URL",
+    }
+
+
 def _sync_age() -> int:
     """Seconds since last git-sync pull."""
     head_path = PLANNING_PATH / ".git" / "FETCH_HEAD"
@@ -771,6 +812,9 @@ def patch_source(source_id: str, body: SourcePatch):
 @app.post("/dispatch/dry-run", response_model=TriggerPreview)
 def dispatch_dry_run(req: DispatchRequest):
     repo_id = _normalize_repo_id(req.repo_id)
+    project = _registry_project(repo_id)
+    integration_branch = _resolve_integration_branch(project)
+    worker_routing = _resolve_worker_routing(project)
     tree = _tree(repo_id)
     for s in tree.get("slices", []):
         if s["slice_id"] == req.slice_id:
@@ -791,13 +835,9 @@ def dispatch_dry_run(req: DispatchRequest):
                         title=s.get("title", ""),
                         implementation_repo_id=repo_id,
                         implementation_github_slug=f"sv-copilot/{repo_id}",
-                        integration_branch="ai-dev",
+                        integration_branch=integration_branch,
                         dependency_tree_path=f".docs/planning/projects/{repo_id}/slice_dependency_tree.json",
-                        worker_routing={
-                            "adapter_type": "cline",
-                            "worker_id": "self-hosted-cline-runner",
-                            "webhook_env_name": "COCKPIT_API_URL",
-                        },
+                        worker_routing=worker_routing,
                         dry_run_task_packet={
                             "task_type": "implement_slice",
                             "adapter_type": "cline",
@@ -823,13 +863,9 @@ def dispatch_dry_run(req: DispatchRequest):
                 title=s.get("title", ""),
                 implementation_repo_id=repo_id,
                 implementation_github_slug=f"sv-copilot/{repo_id}",
-                integration_branch="ai-dev",
+                integration_branch=integration_branch,
                 dependency_tree_path=f".docs/planning/projects/{repo_id}/slice_dependency_tree.json",
-                worker_routing={
-                    "adapter_type": "cline",
-                    "worker_id": "self-hosted-cline-runner",
-                    "webhook_env_name": "COCKPIT_API_URL",
-                },
+                worker_routing=worker_routing,
                 dry_run_task_packet={
                     "task_type": "implement_slice",
                     "adapter_type": "cline",
