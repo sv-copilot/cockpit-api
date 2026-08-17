@@ -136,6 +136,11 @@ def _resolve_integration_branch(project: dict | None) -> str:
     return (project or {}).get("integration_branch") or "dev"
 
 
+def _planning_branch() -> str:
+    """Default planning checkout branch for the admin sync cron."""
+    return os.getenv("PLANNING_BRANCH", "dev")
+
+
 def _resolve_worker_routing(project: dict | None) -> dict:
     """Resolve dispatch worker routing from the project's primary worker.
 
@@ -202,6 +207,18 @@ def _promotion_gaps(slices: list[dict]) -> list[dict]:
                 "last_known_pr_url": f"https://github.com/sv-copilot/{bp.get('implementation_repo_id', '')}/pull/{s['last_known_pr']}" if s.get("last_known_pr") else None,
             })
     return gaps
+
+
+def _branch_posture_summary(slices: list[dict]) -> dict[str, int]:
+    """Roll up merged_branch/promoted_branch counts per branch for active slices."""
+    summary: dict[str, int] = {}
+    for s in slices:
+        bp = s.get("branch_posture") or {}
+        for key in ("merged_branch", "promoted_branch"):
+            branch = bp.get(key)
+            if branch:
+                summary[str(branch)] = summary.get(str(branch), 0) + 1
+    return summary
 
 
 def _load_queue() -> dict:
@@ -714,7 +731,7 @@ def cockpit_progress():
             repo_id=repo_id,
             github_slug=proj.get("github_slug", ""),
             slice_counts_by_state=_slice_counts(slices),
-            branch_posture_summary={"ai-dev": len(slices)},
+            branch_posture_summary=_branch_posture_summary(slices),
             promotion_gap_count=len(_promotion_gaps(slices)),
             open_gate_count=open_gates,
         ))
@@ -961,7 +978,7 @@ def admin_sync():
 
     planning_path = Path(os.getenv("PLANNING_CHECKOUT_PATH", "/data/planning/drake-governance"))
     slug = os.getenv("PLANNING_GITHUB_SLUG", "sv-copilot/drake-governance")
-    branch = os.getenv("PLANNING_BRANCH", "ai-dev")
+    branch = _planning_branch()
     gh_token = os.getenv("GH_TOKEN", "")
 
     if not planning_path.exists():
