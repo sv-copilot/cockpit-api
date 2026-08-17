@@ -122,6 +122,52 @@ def _tree(repo_id: str) -> dict:
     return _load_json(tree_path)
 
 
+def _registry_project(repo_id: str) -> dict | None:
+    """Return the registry entry for a repo_id (normalized), or None."""
+    repo_id = _normalize_repo_id(repo_id)
+    return next(
+        (item for item in _registry().get("projects", []) if item.get("id") == repo_id),
+        None,
+    )
+
+
+def _resolve_integration_branch(project: dict | None) -> str:
+    """Resolve a project's integration branch from its registry entry."""
+    return (project or {}).get("integration_branch") or "dev"
+
+
+def _planning_branch() -> str:
+    """Default planning checkout branch for the admin sync cron."""
+    return os.getenv("PLANNING_BRANCH", "dev")
+
+
+def _resolve_worker_routing(project: dict | None) -> dict:
+    """Resolve dispatch worker routing from the project's primary worker.
+
+    Falls back to the legacy hardcoded values when no registry entry/worker
+    exists, so the dry-run preview never crashes on an unregistered repo.
+    """
+    worker: dict | None = None
+    if project is not None:
+        try:
+            import sys
+
+            scripts_root = Path(__file__).resolve().parent / "scripts"
+            if str(scripts_root) not in sys.path:
+                sys.path.insert(0, str(scripts_root))
+            from projects_registry import get_primary_worker  # noqa: E402
+
+            worker = get_primary_worker(project)
+        except Exception:
+            worker = None
+    webhook_env = (worker or {}).get("webhook_env") or {}
+    return {
+        "adapter_type": (worker or {}).get("adapter_type") or "cline",
+        "worker_id": (worker or {}).get("worker_id") or "self-hosted-cline-runner",
+        "webhook_env_name": webhook_env.get("url") or "COCKPIT_API_URL",
+    }
+
+
 def _sync_age() -> int:
     """Seconds since last git-sync pull."""
     head_path = PLANNING_PATH / ".git" / "FETCH_HEAD"
@@ -161,6 +207,18 @@ def _promotion_gaps(slices: list[dict]) -> list[dict]:
                 "last_known_pr_url": f"https://github.com/sv-copilot/{bp.get('implementation_repo_id', '')}/pull/{s['last_known_pr']}" if s.get("last_known_pr") else None,
             })
     return gaps
+
+
+def _branch_posture_summary(slices: list[dict]) -> dict[str, int]:
+    """Roll up merged_branch/promoted_branch counts per branch for active slices."""
+    summary: dict[str, int] = {}
+    for s in slices:
+        bp = s.get("branch_posture") or {}
+        for key in ("merged_branch", "promoted_branch"):
+            branch = bp.get(key)
+            if branch:
+                summary[str(branch)] = summary.get(str(branch), 0) + 1
+    return summary
 
 
 def _load_queue() -> dict:
@@ -673,7 +731,7 @@ def cockpit_progress():
             repo_id=repo_id,
             github_slug=proj.get("github_slug", ""),
             slice_counts_by_state=_slice_counts(slices),
-            branch_posture_summary={"ai-dev": len(slices)},
+            branch_posture_summary=_branch_posture_summary(slices),
             promotion_gap_count=len(_promotion_gaps(slices)),
             open_gate_count=open_gates,
         ))
@@ -771,6 +829,9 @@ def patch_source(source_id: str, body: SourcePatch):
 @app.post("/dispatch/dry-run", response_model=TriggerPreview)
 def dispatch_dry_run(req: DispatchRequest):
     repo_id = _normalize_repo_id(req.repo_id)
+    project = _registry_project(repo_id)
+    integration_branch = _resolve_integration_branch(project)
+    worker_routing = _resolve_worker_routing(project)
     tree = _tree(repo_id)
     for s in tree.get("slices", []):
         if s["slice_id"] == req.slice_id:
@@ -791,13 +852,9 @@ def dispatch_dry_run(req: DispatchRequest):
                         title=s.get("title", ""),
                         implementation_repo_id=repo_id,
                         implementation_github_slug=f"sv-copilot/{repo_id}",
-                        integration_branch="ai-dev",
+                        integration_branch=integration_branch,
                         dependency_tree_path=f".docs/planning/projects/{repo_id}/slice_dependency_tree.json",
-                        worker_routing={
-                            "adapter_type": "cline",
-                            "worker_id": "self-hosted-cline-runner",
-                            "webhook_env_name": "COCKPIT_API_URL",
-                        },
+                        worker_routing=worker_routing,
                         dry_run_task_packet={
                             "task_type": "implement_slice",
                             "adapter_type": "cline",
@@ -823,13 +880,9 @@ def dispatch_dry_run(req: DispatchRequest):
                 title=s.get("title", ""),
                 implementation_repo_id=repo_id,
                 implementation_github_slug=f"sv-copilot/{repo_id}",
-                integration_branch="ai-dev",
+                integration_branch=integration_branch,
                 dependency_tree_path=f".docs/planning/projects/{repo_id}/slice_dependency_tree.json",
-                worker_routing={
-                    "adapter_type": "cline",
-                    "worker_id": "self-hosted-cline-runner",
-                    "webhook_env_name": "COCKPIT_API_URL",
-                },
+                worker_routing=worker_routing,
                 dry_run_task_packet={
                     "task_type": "implement_slice",
                     "adapter_type": "cline",
@@ -925,7 +978,7 @@ def admin_sync():
 
     planning_path = Path(os.getenv("PLANNING_CHECKOUT_PATH", "/data/planning/drake-governance"))
     slug = os.getenv("PLANNING_GITHUB_SLUG", "sv-copilot/drake-governance")
-    branch = os.getenv("PLANNING_BRANCH", "ai-dev")
+    branch = _planning_branch()
     gh_token = os.getenv("GH_TOKEN", "")
 
     if not planning_path.exists():
