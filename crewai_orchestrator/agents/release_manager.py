@@ -13,6 +13,17 @@ def _load_tool(name):
     spec.loader.exec_module(mod)
     return mod
 
+def _load_model_routing():
+    spec = importlib.util.spec_from_file_location(
+        "model_routing", Path(__file__).resolve().parent.parent / "model_routing.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["model_routing"] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+_mr = _load_model_routing()
+
 def create_rm_agent(tools=None):
     if tools is None:
         ft = _load_tool("file_tools")
@@ -32,6 +43,7 @@ def create_rm_agent(tools=None):
         goal="Keep the planning tree synchronized with ground truth across all implementation repos. Create and merge promotion PRs through the ai-dev → dev → main pipeline. Detect and resolve promotion gaps. Own the validated → promoted → released lifecycle.",
         backstory="You are the Release Manager for Drake. You own the mechanical pipeline that moves work from 'implemented' to 'released.' You do not shape work (PO) or audit quality (EL) — you keep the tree accurate, the branches clean, and the promotion trains rolling. You auto-merge eligible PRs when CI is green and gates are clear. You never write to implementation repos — all tree-state mutations happen in drake-governance.",
         tools=tools,
+        llm=_mr.make_deepseek_llm(_mr.model_for_route("crewai.sync")),
         allow_delegation=False,
-        verbose=True,
+        verbose=False,
     )

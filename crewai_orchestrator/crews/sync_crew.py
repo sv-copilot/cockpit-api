@@ -85,18 +85,14 @@ SYNC_TASK_SPECS: list[tuple[str, str, str]] = [
 
 def _build_tasks(agent: Any, *, dry_run: bool) -> list[Task]:
     tasks: list[Task] = []
-    previous: Task | None = None
     for _name, description, expected_output in SYNC_TASK_SPECS:
         kwargs: dict[str, Any] = {
             "description": with_dry_run_preamble(description, dry_run=dry_run),
             "expected_output": expected_output,
             "agent": agent,
         }
-        if previous is not None:
-            kwargs["context"] = [previous]
         task = Task(**kwargs)
         tasks.append(task)
-        previous = task
     return tasks
 
 
@@ -117,6 +113,6 @@ def create_sync_crew(
         agents=[agent],
         tasks=tasks,
         process=Process.sequential,
-        verbose=True,
+        verbose=False,
         memory=False,
     )

@@ -8,11 +8,28 @@ import logging
 import signal
 import time
 import sys
+import importlib.util
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Dict, Any
 
 from crewai import Crew, Process, Task
-from tools.crewai_orchestrator.agents.infrastructure_steward import create_steward_agent
+
+_ORCH_DIR = Path(__file__).resolve().parent.parent
+
+
+def _load_module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load {name} from {path}")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+_steward = _load_module("infrastructure_steward", _ORCH_DIR / "agents" / "infrastructure_steward.py")
+create_steward_agent = _steward.create_steward_agent
 
 logger = logging.getLogger(__name__)
 
@@ -83,16 +100,22 @@ class HandmaidenCrew:
             agent=self.agent,
         )
 
+    def _build_crew(self) -> Crew:
+        """
+        Build the single-agent handmaiden crew. Extracted for testability.
+        """
+        return Crew(
+            agents=[self.agent],
+            tasks=[self.health_sweep_task()],
+            process=Process.sequential,
+            verbose=False,
+        )
+
     def run_single_sweep(self) -> HealthSweep:
         """
         Execute one health sweep and return the result.
         """
-        crew = Crew(
-            agents=[self.agent],
-            tasks=[self.health_sweep_task()],
-            process=Process.sequential,
-            verbose=True,
-        )
+        crew = self._build_crew()
         result = crew.kickoff()
 
         # Parse the result into a HealthSweep
