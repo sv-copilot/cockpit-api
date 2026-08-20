@@ -77,7 +77,12 @@ def _tier_for_model(model: str, config: dict[str, Any]) -> dict[str, Any]:
 
 
 def make_deepseek_llm(model: str, config: dict[str, Any] | None = None) -> Any:
-    """Build a DeepSeek CrewAI LLM for `model` using its tier's temperature/max_tokens.
+    """Build a DeepSeek CrewAI LLM for `model` using its tier's configuration.
+
+    Optional per-tier `reasoning_effort` / `thinking` controls (DRAKE-MODEL-
+    REASONING-CONTROL-1) are forwarded when the tier declares them —
+    `reasoning_effort` as a top-level LLM kwarg, `thinking` via `extra_body`.
+    When absent the call is unchanged, preserving existing defaults.
 
     `DEEPSEEK_API_KEY` is read at call time. A missing key degrades gracefully:
     CrewAI raises at kickoff, which the dispatch path already captures as a
@@ -85,10 +90,15 @@ def make_deepseek_llm(model: str, config: dict[str, Any] | None = None) -> Any:
     """
     cfg = config if config is not None else load_config()
     tier_def = _tier_for_model(model, cfg)
-    return LLM(
+    llm_kwargs: dict[str, Any] = dict(
         model=model,
         base_url=os.getenv("DEEPSEEK_BASE_URL", DEFAULT_BASE_URL),
         api_key=os.getenv("DEEPSEEK_API_KEY"),
         temperature=tier_def.get("temperature", _DEFAULT_TEMPERATURE),
         max_tokens=tier_def.get("max_tokens", _DEFAULT_MAX_TOKENS),
     )
+    if "reasoning_effort" in tier_def:
+        llm_kwargs["reasoning_effort"] = tier_def["reasoning_effort"]
+    if "thinking" in tier_def:
+        llm_kwargs.setdefault("extra_body", {})["thinking"] = tier_def["thinking"]
+    return LLM(**llm_kwargs)
