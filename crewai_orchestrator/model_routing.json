@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "peak_hours_utc": [[1, 4], [6, 10]],
+  "tiers": {
+    "implementation": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "temperature": 0.2,
+      "max_tokens": 12000,
+      "reasoning_effort": "low",
+      "peak_policy": "off_peak_only",
+      "notes": "Quality-critical coding: multi-file edits, architecture, TDD green iterations. Keep on pro; off-peak only."
+    },
+    "reasoning": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "temperature": 0.2,
+      "max_tokens": 12000,
+      "reasoning_effort": "low",
+      "peak_policy": "off_peak_only",
+      "notes": "Architecture and decision-quality reasoning. Same cost profile as implementation."
+    },
+    "mechanical": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "temperature": 0.1,
+      "max_tokens": 4000,
+      "thinking": {"type": "disabled"},
+      "peak_policy": "any",
+      "notes": "Mechanical edits: tree-sync messages, doc-format sweeps, deterministic rewrites. Safe at any hour."
+    },
+    "classification": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "temperature": 0.0,
+      "max_tokens": 1024,
+      "thinking": {"type": "disabled"},
+      "peak_policy": "any",
+      "notes": "Selection/triage: next-slice selection, audit triage. Breadth, not depth."
+    },
+    "summarization": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "temperature": 0.2,
+      "max_tokens": 4096,
+      "thinking": {"type": "disabled"},
+      "peak_policy": "any",
+      "notes": "Summaries and condensation of docs, logs, and reports."
+    }
+  },
+  "routes": {
+    "run_slice.implementation": "implementation",
+    "run_slice.retry_fix": "implementation",
+    "orchestrator.select_next": "classification",
+    "orchestrator.tree_sync": "mechanical",
+    "crewai.refinement": "reasoning",
+    "crewai.audit": "reasoning",
+    "crewai.sync": "mechanical",
+    "crewai.handmaiden": "mechanical",
+    "saimon.generate": "reasoning",
+    "saimon.verify": "reasoning",
+    "saimon.evaluate": "classification",
+    "saimon.extract_claims": "mechanical",
+    "saimon.research": "reasoning"
+  }
+}

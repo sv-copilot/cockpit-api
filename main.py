@@ -53,6 +53,7 @@ SOURCES_PATH = Path(os.getenv("SOURCES_PATH", "/data/cockpit/sources.json"))
 RUNS_PATH = Path(os.getenv("RUNS_PATH", "/data/cockpit/runs"))
 
 SAFE_RUN_ID = re.compile(r"^[a-zA-Z0-9._-]+$")
+DEFAULT_EXPECTED_ENV_VARS = ("DEEPSEEK_API_KEY",)
 SECRET_FIELD_NAMES = {
     "gh_token",
     "github_token",
@@ -166,6 +167,22 @@ def _resolve_worker_routing(project: dict | None) -> dict:
         "worker_id": (worker or {}).get("worker_id") or "self-hosted-cline-runner",
         "webhook_env_name": webhook_env.get("url") or "COCKPIT_API_URL",
     }
+
+def _expected_env_report() -> dict[str, str]:
+    """Presence-only map of expected runtime env vars — names only, never values.
+
+    The expected list is config-driven via the comma-separated
+    ``EXPECTED_ENV_VARS`` env var, defaulting to ``DEEPSEEK_API_KEY``. Values are
+    reported as ``present``/``absent``; the secret values themselves are never
+    included in the payload.
+    """
+    raw = os.getenv("EXPECTED_ENV_VARS")
+    names = (
+        [name.strip() for name in raw.split(",") if name.strip()]
+        if raw
+        else list(DEFAULT_EXPECTED_ENV_VARS)
+    )
+    return {name: "present" if name in os.environ else "absent" for name in names}
 
 
 def _sync_age() -> int:
@@ -695,6 +712,7 @@ def health():
         "status": "ok",
         "planning_path": str(PLANNING_PATH),
         "sync_age_seconds": _sync_age(),
+        "expected_env": _expected_env_report(),
     }
 
 

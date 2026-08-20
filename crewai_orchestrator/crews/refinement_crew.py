@@ -122,6 +122,6 @@ def create_refinement_crew(
         agents=[agent],
         tasks=tasks,
         process=Process.sequential,
-        verbose=True,
+        verbose=False,
         memory=False,
     )

@@ -148,6 +148,8 @@ def run_crew_kickoff(
         "repo_id": context["repo_id"],
         "slice_id": context["slice_id"],
         "operator_input": context.get("operator_input", ""),
+        "pr_number": context.get("pr_number", ""),
+        "pr_title": context.get("pr_title", ""),
     }
     result = crew.kickoff(inputs=kickoff_inputs)
     task_outputs = extract_task_outputs(crew)

@@ -118,6 +118,6 @@ def create_audit_crew(
         agents=[agent],
         tasks=tasks,
         process=Process.sequential,
-        verbose=True,
+        verbose=False,
         memory=False,
     )
