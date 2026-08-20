@@ -120,6 +120,20 @@ class TestVendoredSync:
         assert vendored["version"] == canonical_cfg["version"]
         assert vendored["peak_hours_utc"] == canonical_cfg["peak_hours_utc"]
 
+    def test_vendored_includes_cost_control_fields(self) -> None:
+        # DRAKE-MODEL-REASONING-CONTROL-1: the vendored sync must carry the
+        # new per-tier cost controls (reasoning_effort low on pro tiers,
+        # thinking disabled on flash tiers, tightened max_tokens).
+        vendored = json.loads(VENDORED_PATH.read_text(encoding="utf-8"))
+        for tier_name in ("implementation", "reasoning"):
+            assert vendored["tiers"][tier_name]["reasoning_effort"] == "low"
+            assert vendored["tiers"][tier_name]["max_tokens"] == 12000
+        for tier_name in ("mechanical", "classification", "summarization"):
+            assert vendored["tiers"][tier_name]["thinking"] == {"type": "disabled"}
+        assert vendored["tiers"]["mechanical"]["max_tokens"] == 4000
+        assert vendored["tiers"]["classification"]["max_tokens"] == 1024
+        assert vendored["tiers"]["summarization"]["max_tokens"] == 4096
+
 
 class TestMakeDeepseekLLM:
     """make_deepseek_llm must build a DeepSeek LLM from the routed tier."""
@@ -133,7 +147,10 @@ class TestMakeDeepseekLLM:
         assert kwargs["model"] == "deepseek-v4-pro"
         assert kwargs["base_url"] == os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
         assert kwargs["temperature"] == 0.2
-        assert kwargs["max_tokens"] == 16000
+        assert kwargs["max_tokens"] == 12000
+        # reasoning tier declares reasoning_effort=low (no thinking) -> forwarded top-level.
+        assert kwargs["reasoning_effort"] == "low"
+        assert "extra_body" not in kwargs
 
     def test_builds_flash_llm_from_mechanical_tier(self) -> None:
         config = mr.load_config()
@@ -142,4 +159,45 @@ class TestMakeDeepseekLLM:
         kwargs = mock_llm.call_args.kwargs
         assert kwargs["model"] == "deepseek-v4-flash"
         assert kwargs["temperature"] == 0.1
-        assert kwargs["max_tokens"] == 8000
+        assert kwargs["max_tokens"] == 4000
+        # mechanical tier declares thinking disabled (no reasoning_effort) -> via extra_body.
+        assert "reasoning_effort" not in kwargs
+        assert kwargs["extra_body"] == {"thinking": {"type": "disabled"}}
+
+    def test_defaults_unchanged_when_tier_declares_no_overrides(self) -> None:
+        config = {
+            "version": 1,
+            "peak_hours_utc": [[1, 4]],
+            "tiers": {
+                "implementation": {"provider": "deepseek", "model": "deepseek-v4-pro", "temperature": 0.2, "max_tokens": 16000, "peak_policy": "off_peak_only"},
+                "mechanical": {"provider": "deepseek", "model": "deepseek-v4-flash", "temperature": 0.1, "max_tokens": 8000, "peak_policy": "any"},
+            },
+            "routes": {"crewai.refinement": "implementation"},
+        }
+        with patch.object(mr, "LLM") as mock_llm:
+            mr.make_deepseek_llm("deepseek-v4-pro", config=config)
+        kwargs = mock_llm.call_args.kwargs
+        assert kwargs["temperature"] == 0.2
+        assert kwargs["max_tokens"] == 16000
+        assert "reasoning_effort" not in kwargs
+        assert "extra_body" not in kwargs
+
+    def test_forwards_reasoning_effort_and_thinking_together(self) -> None:
+        config = {
+            "version": 1,
+            "peak_hours_utc": [[1, 4]],
+            "tiers": {
+                "mechanical": {
+                    "provider": "deepseek", "model": "deepseek-v4-flash", "temperature": 0.1,
+                    "max_tokens": 4000, "reasoning_effort": "low", "thinking": {"type": "disabled"},
+                    "peak_policy": "any",
+                },
+            },
+            "routes": {"crewai.sync": "mechanical"},
+        }
+        with patch.object(mr, "LLM") as mock_llm:
+            mr.make_deepseek_llm("deepseek-v4-flash", config=config)
+        kwargs = mock_llm.call_args.kwargs
+        assert kwargs["reasoning_effort"] == "low"
+        assert kwargs["extra_body"] == {"thinking": {"type": "disabled"}}
+        assert kwargs["max_tokens"] == 4000
