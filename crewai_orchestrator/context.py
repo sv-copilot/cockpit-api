@@ -92,6 +92,14 @@ def resolve_planning_context(
         slice_number=slice_record.get("slice_number"),
     )
 
+    # PR identity for crews whose task templates interpolate {pr_number}/{pr_title}.
+    # Source pr_number from branch_posture.last_known_pr, falling back to the
+    # top-level last_known_pr field, and coerce to a string (fail-closed to "").
+    posture = slice_record.get("branch_posture") or {}
+    raw_pr_number = posture.get("last_known_pr") or slice_record.get("last_known_pr")
+    pr_number = str(raw_pr_number).strip() if raw_pr_number else ""
+    pr_title = slice_record.get("title") or ""
+
     return {
         "repo_id": repo_id,
         "slice_id": slice_id,
@@ -101,6 +109,8 @@ def resolve_planning_context(
         "tree_path": str(tree_path.relative_to(planning_path)),
         "registry_project": registry_project,
         "open_questions": open_questions,
+        "pr_number": pr_number,
+        "pr_title": pr_title,
         "operator_input": (
             f"Refine and analyze slice {slice_id} ({slice_record.get('title', '')}). "
             f"Open questions count: {len(open_questions)}."
